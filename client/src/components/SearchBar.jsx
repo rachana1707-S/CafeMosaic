@@ -1,1 +1,0 @@
-// Input field for users to search locations.

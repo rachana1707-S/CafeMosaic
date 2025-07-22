@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthUser } from "../context/AuthContext";
-import logo from "../assets/navbar_logo_desktop.jpeg";
+import { Coffee, Search, Heart, Star, MapPin, User } from "lucide-react";
+import logo from "../assets/coffee_logo.png"; // Coffee shop logo
 
 export default function Navbar() {
   const { user, logout } = useAuthUser();
@@ -28,14 +29,21 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`navbar navbar-expand-lg fixed-top w-100 py-0 ${
-        isScrolled ? "bg-white shadow-sm" : "bg-white"
+      className={`navbar navbar-expand-lg fixed-top w-100 py-2 ${
+        isScrolled ? "bg-white shadow-lg" : "bg-white"
       }`}
-      style={{ zIndex: 1030, transition: "background-color 0.3s ease" }}
+      style={{ 
+        zIndex: 1030, 
+        transition: "all 0.3s ease",
+        backdropFilter: "blur(10px)"
+      }}
     >
       <div className="container-fluid">
         <Link className="navbar-brand d-flex align-items-center" to="/">
-          <img src={logo} alt="PlanVoyage" style={{ height: "40px" }} />
+          <Coffee className="text-warning me-2" size={32} />
+          <span className="fw-bold text-dark" style={{ fontSize: '1.5rem' }}>
+            CoffeeFinder
+          </span>
         </Link>
 
         <button
@@ -46,7 +54,7 @@ export default function Navbar() {
           aria-controls="navbarNav"
           aria-expanded="false"
           aria-label="Toggle navigation"
-          style={{ backgroundColor: "#f0f0f0" }}
+          style={{ backgroundColor: "#f0f0f0", border: "1px solid #ddd" }}
         >
           <span className="navbar-toggler-icon" />
         </button>
@@ -57,91 +65,152 @@ export default function Navbar() {
           style={{
             backgroundColor: "#f8f9fa",
             padding: "0.5rem",
-            borderRadius: "0.5rem",
+            borderRadius: "0.75rem",
+            marginTop: "0.5rem"
           }}
         >
           <ul className="navbar-nav ms-auto fw-semibold text-center">
+            {/* Home */}
             <li className="nav-item">
               <Link
                 to="/"
-                className="nav-link px-3 py-2"
+                className="nav-link px-3 py-2 d-flex align-items-center justify-content-center"
                 style={underlineHover}
                 onMouseEnter={(e) =>
-                  (e.target.style.borderBottomColor = "#0d6efd")
+                  (e.target.style.borderBottomColor = "#ffc107")
                 }
                 onMouseLeave={(e) =>
                   (e.target.style.borderBottomColor = "transparent")
                 }
               >
+                <Coffee size={18} className="me-1" />
                 Home
               </Link>
             </li>
 
+            {/* Search Coffee Shops */}
             <li className="nav-item">
               <Link
-                to="/plan-trips"
-                className="nav-link px-3 py-2"
+                to="/search"
+                className="nav-link px-3 py-2 d-flex align-items-center justify-content-center"
                 style={underlineHover}
                 onMouseEnter={(e) =>
-                  (e.target.style.borderBottomColor = "#0d6efd")
+                  (e.target.style.borderBottomColor = "#ffc107")
                 }
                 onMouseLeave={(e) =>
                   (e.target.style.borderBottomColor = "transparent")
                 }
               >
-                Plan Your Trip
+                <Search size={18} className="me-1" />
+                Find Coffee Shops
               </Link>
             </li>
 
+            {/* Browse Reviews */}
             <li className="nav-item">
               <Link
-                to="/suggested-plans"
-                className="nav-link px-3 py-2"
+                to="/reviews"
+                className="nav-link px-3 py-2 d-flex align-items-center justify-content-center"
                 style={underlineHover}
                 onMouseEnter={(e) =>
-                  (e.target.style.borderBottomColor = "#0d6efd")
+                  (e.target.style.borderBottomColor = "#ffc107")
                 }
                 onMouseLeave={(e) =>
                   (e.target.style.borderBottomColor = "transparent")
                 }
               >
-                Suggested Iteninaries
+                <Star size={18} className="me-1" />
+                Reviews
+              </Link>
+            </li>
+
+            {/* Coffee Shop Map */}
+            <li className="nav-item">
+              <Link
+                to="/map"
+                className="nav-link px-3 py-2 d-flex align-items-center justify-content-center"
+                style={underlineHover}
+                onMouseEnter={(e) =>
+                  (e.target.style.borderBottomColor = "#ffc107")
+                }
+                onMouseLeave={(e) =>
+                  (e.target.style.borderBottomColor = "transparent")
+                }
+              >
+                <MapPin size={18} className="me-1" />
+                Map
               </Link>
             </li>
 
             {user && (
               <>
+                {/* My Favorites */}
                 <li className="nav-item">
                   <Link
-                    to="/saved-plans"
-                    className="nav-link px-3 py-2"
+                    to="/my-favorites"
+                    className="nav-link px-3 py-2 d-flex align-items-center justify-content-center"
                     style={underlineHover}
                     onMouseEnter={(e) =>
-                      (e.target.style.borderBottomColor = "#0d6efd")
+                      (e.target.style.borderBottomColor = "#ffc107")
                     }
                     onMouseLeave={(e) =>
                       (e.target.style.borderBottomColor = "transparent")
                     }
                   >
-                    View Saved Plans
+                    <Heart size={18} className="me-1" />
+                    My Favorites
+                  </Link>
+                </li>
+
+                {/* Mobile-only menu items */}
+                <li className="nav-item d-lg-none">
+                  <Link
+                    to="/my-collections"
+                    className="nav-link px-3 py-2"
+                    style={underlineHover}
+                    onMouseEnter={(e) =>
+                      (e.target.style.borderBottomColor = "#ffc107")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.target.style.borderBottomColor = "transparent")
+                    }
+                  >
+                    My Collections
                   </Link>
                 </li>
 
                 <li className="nav-item d-lg-none">
                   <Link
-                    to="/my-suggestions"
+                    to="/my-reviews"
                     className="nav-link px-3 py-2"
                     style={underlineHover}
                     onMouseEnter={(e) =>
-                      (e.target.style.borderBottomColor = "#0d6efd")
+                      (e.target.style.borderBottomColor = "#ffc107")
                     }
                     onMouseLeave={(e) =>
                       (e.target.style.borderBottomColor = "transparent")
                     }
                   >
-                    My Suggestions
+                    My Reviews
                   </Link>
                 </li>
+
+                <li className="nav-item d-lg-none">
+                  <Link
+                    to="/my-visits"
+                    className="nav-link px-3 py-2"
+                    style={underlineHover}
+                    onMouseEnter={(e) =>
+                      (e.target.style.borderBottomColor = "#ffc107")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.target.style.borderBottomColor = "transparent")
+                    }
+                  >
+                    My Visits
+                  </Link>
+                </li>
+
                 <li className="nav-item d-lg-none">
                   <button
                     onClick={handleLogout}
@@ -152,7 +221,7 @@ export default function Navbar() {
                       color: "inherit",
                     }}
                     onMouseEnter={(e) =>
-                      (e.target.style.borderBottomColor = "#0d6efd")
+                      (e.target.style.borderBottomColor = "#ffc107")
                     }
                     onMouseLeave={(e) =>
                       (e.target.style.borderBottomColor = "transparent")
@@ -162,10 +231,10 @@ export default function Navbar() {
                   </button>
                 </li>
 
-                {/* Username with dropdown only on laptop and larger */}
+                {/* Desktop dropdown menu */}
                 <li className="nav-item dropdown d-none d-lg-block">
                   <button
-                    className="nav-link dropdown-toggle px-3 py-2 btn btn-link"
+                    className="nav-link dropdown-toggle px-3 py-2 btn btn-link d-flex align-items-center"
                     id="userDropdown"
                     data-bs-toggle="dropdown"
                     aria-expanded="false"
@@ -175,25 +244,48 @@ export default function Navbar() {
                       color: "inherit",
                     }}
                     onMouseEnter={(e) =>
-                      (e.target.style.borderBottomColor = "#0d6efd")
+                      (e.target.style.borderBottomColor = "#ffc107")
                     }
                     onMouseLeave={(e) =>
                       (e.target.style.borderBottomColor = "transparent")
                     }
                   >
+                    <User size={18} className="me-1" />
                     {user.username}
                   </button>
                   <ul
-                    className="dropdown-menu dropdown-menu-end"
+                    className="dropdown-menu dropdown-menu-end shadow-lg"
                     aria-labelledby="userDropdown"
+                    style={{ borderRadius: "0.75rem", border: "none" }}
                   >
                     <li>
-                      <Link to="/my-suggestions" className="dropdown-item">
-                        My Suggestions
+                      <Link to="/my-collections" className="dropdown-item">
+                        <Coffee size={16} className="me-2" />
+                        My Collections
                       </Link>
                     </li>
                     <li>
-                      <button onClick={handleLogout} className="dropdown-item">
+                      <Link to="/my-reviews" className="dropdown-item">
+                        <Star size={16} className="me-2" />
+                        My Reviews
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/my-visits" className="dropdown-item">
+                        <MapPin size={16} className="me-2" />
+                        My Visits
+                      </Link>
+                    </li>
+                    <li><hr className="dropdown-divider" /></li>
+                    <li>
+                      <Link to="/profile" className="dropdown-item">
+                        <User size={16} className="me-2" />
+                        Profile Settings
+                      </Link>
+                    </li>
+                    <li>
+                      <button onClick={handleLogout} className="dropdown-item text-danger">
+                        <i className="fas fa-sign-out-alt me-2"></i>
                         Logout
                       </button>
                     </li>
@@ -206,15 +298,16 @@ export default function Navbar() {
               <li className="nav-item">
                 <Link
                   to="/login"
-                  className="nav-link px-3 py-2"
+                  className="nav-link px-3 py-2 d-flex align-items-center justify-content-center"
                   style={underlineHover}
                   onMouseEnter={(e) =>
-                    (e.target.style.borderBottomColor = "#0d6efd")
+                    (e.target.style.borderBottomColor = "#ffc107")
                   }
                   onMouseLeave={(e) =>
                     (e.target.style.borderBottomColor = "transparent")
                   }
                 >
+                  <User size={18} className="me-1" />
                   Login
                 </Link>
               </li>
