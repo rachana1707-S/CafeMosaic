@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Search, MapPin, Coffee, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
-import backgroundImage from "../assets/coffee_search_bg.jpg"; // Coffee shop background
+import backgroundImage from "../assets/coffee_search_bg.jpeg"; // Coffee shop background
 
 export default function SearchCoffeeShops() {
   const navigate = useNavigate();

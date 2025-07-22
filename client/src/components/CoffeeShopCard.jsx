@@ -1,9 +1,9 @@
 import React from "react";
 import { Star, Phone, Clock, MapPin, Heart, Plus } from "lucide-react";
-import cafePlaceholder from "../assets/cafe_placeholder.jpg";
-import chainCoffeePlaceholder from "../assets/chain_coffee_placeholder.jpg";
+import cafePlaceholder from "../assets/cafe_placeholder.jpeg";
+import chainCoffeePlaceholder from "../assets/chain_coffee_placeholder.jpeg";
 import localRoasterPlaceholder from "../assets/local_roaster_placeholder.jpg";
-import driveThruPlaceholder from "../assets/drive_thru_placeholder.jpg";
+import driveThruPlaceholder from "../assets/drive_thru_placeholder.jpeg";
 
 export default function CoffeeShopCard({ 
   coffeeShop, 
