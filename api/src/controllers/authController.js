@@ -1,13 +1,14 @@
+// ===== FILE: controllers/authController.js =====
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import prisma from '../config/db.js';
 
 // Register User
 export const register = async (req, res) => {
-  const { username, email, password } = req.body;
+  const { username, email, password, name, preferences } = req.body;
 
   if (!username || !email || !password) {
-    return res.status(400).json({ message: 'All fields are required.' });
+    return res.status(400).json({ message: 'Username, email, and password are required.' });
   }
 
   try {
@@ -21,11 +22,20 @@ export const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await prisma.user.create({
-      data: { username, email, password: hashedPassword },
+    const user = await prisma.user.create({
+      data: { 
+        username, 
+        email, 
+        password: hashedPassword,
+        name: name || null,
+        preferences: preferences || { unit: 'km', defaultRadius: 5 }
+      },
     });
 
-    res.status(201).json({ message: 'User registered successfully.' });
+    res.status(201).json({ 
+      message: 'User registered successfully.',
+      user: { id: user.id, username: user.username, email: user.email }
+    });
   } catch (error) {
     console.error('Registration Error:', error);
     res.status(500).json({ message: 'Internal Server Error.' });
@@ -56,18 +66,22 @@ export const login = async (req, res) => {
 
     const isProduction = process.env.NODE_ENV === 'production';
 
-    // Set token in HTTP-only cookie
     res.cookie('token', token, {
       httpOnly: true,
-      secure: isProduction,                 // true only in production
-      sameSite: isProduction ? 'None' : 'Lax', // Lax for localhost
+      secure: isProduction,
+      sameSite: isProduction ? 'None' : 'Lax',
       path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
     res.json({
       message: 'Login successful',
-      user: { id: user.id, username: user.username },
+      user: { 
+        id: user.id, 
+        username: user.username, 
+        email: user.email,
+        preferences: user.preferences 
+      },
     });
   } catch (error) {
     console.error('Login Error:', error);
@@ -87,25 +101,32 @@ export const logout = (req, res) => {
   res.json({ message: 'Logged out successfully.' });
 };
 
-// Fetch Current User (only if req.user is populated by middleware, not used here)
+// Get current user
 export const getCurrentUser = async (req, res) => {
   try {
-    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    const user = await prisma.user.findUnique({ 
+      where: { id: req.user.id },
+      select: { 
+        id: true, 
+        username: true, 
+        email: true, 
+        name: true, 
+        preferences: true 
+      }
+    });
 
     if (!user) {
       return res.status(404).json({ message: 'User not found.' });
     }
 
-    res.json({
-      user: { id: user.id, username: user.username, email: user.email },
-    });
+    res.json({ user });
   } catch (error) {
     console.error('getCurrentUser Error:', error);
     res.status(500).json({ message: 'Internal Server Error.' });
   }
 };
 
-// Get Logged-in User Data from JWT
+// Get user from JWT token
 export const getMe = async (req, res) => {
   const token = req.cookies.token;
 
@@ -118,7 +139,13 @@ export const getMe = async (req, res) => {
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },
-      select: { id: true, username: true, email: true },
+      select: { 
+        id: true, 
+        username: true, 
+        email: true, 
+        name: true, 
+        preferences: true 
+      },
     });
 
     if (!user) {
@@ -129,5 +156,30 @@ export const getMe = async (req, res) => {
   } catch (error) {
     console.error('getMe Error:', error);
     res.status(401).json({ message: 'Unauthorized: Invalid or expired token' });
+  }
+};
+
+// Update user preferences
+export const updateUserPreferences = async (req, res) => {
+  const { preferences } = req.body;
+  const userId = req.user?.id;
+
+  try {
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: { preferences },
+      select: { 
+        id: true, 
+        username: true, 
+        email: true, 
+        name: true, 
+        preferences: true 
+      }
+    });
+
+    res.json({ user });
+  } catch (error) {
+    console.error('Update preferences Error:', error);
+    res.status(500).json({ message: 'Failed to update preferences.' });
   }
 };

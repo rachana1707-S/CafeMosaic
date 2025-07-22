@@ -1,199 +1,127 @@
+// ===== FILE: controllers/userReviewController.js =====
 import prisma from "../config/db.js";
 
-// Fetch all trip suggestions
-export const getSuggestions = async (req, res) => {
+// Get all reviews for a specific coffee shop
+export const getReviewsByCoffeeShop = async (req, res) => {
+  const coffeeShopId = parseInt(req.params.coffeeShopId);
+  
+  if (!Number.isInteger(coffeeShopId)) {
+    return res.status(400).json({ message: "Invalid coffee shop ID." });
+  }
+
   try {
-    const suggestions = await prisma.tripSuggestion.findMany({
+    const reviews = await prisma.userReview.findMany({
+      where: { coffeeShopId },
+      include: { 
+        user: { select: { username: true } },
+        coffeeShop: { select: { name: true } }
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    res.json(reviews);
+  } catch (err) {
+    console.error("Error fetching reviews:", err);
+    res.status(500).json({ message: "Failed to fetch reviews." });
+  }
+};
+
+// Get all reviews by a specific user
+export const getReviewsByUser = async (req, res) => {
+  const userId = parseInt(req.params.userId);
+  
+  if (!Number.isInteger(userId)) {
+    return res.status(400).json({ message: "Invalid user ID." });
+  }
+
+  try {
+    const reviews = await prisma.userReview.findMany({
+      where: { userId },
+      include: { 
+        coffeeShop: { select: { name: true, address: true, imageUrl: true } }
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    res.json(reviews);
+  } catch (err) {
+    console.error("Error fetching user reviews:", err);
+    res.status(500).json({ message: "Failed to fetch user reviews." });
+  }
+};
+
+// Create or update a review
+export const createOrUpdateReview = async (req, res) => {
+  const { coffeeShopId, rating, title, comment, visitDate, isRecommended = true } = req.body;
+  const userId = req.user?.id;
+
+  if (!coffeeShopId || !rating) {
+    return res.status(400).json({ message: "Coffee shop ID and rating are required." });
+  }
+
+  if (rating < 1 || rating > 5) {
+    return res.status(400).json({ message: "Rating must be between 1 and 5." });
+  }
+
+  try {
+    const reviewData = {
+      rating: parseInt(rating),
+      title: title || null,
+      comment: comment || null,
+      visitDate: visitDate ? new Date(visitDate) : null,
+      isRecommended: Boolean(isRecommended),
+    };
+
+    const review = await prisma.userReview.upsert({
+      where: {
+        userId_coffeeShopId: {
+          userId,
+          coffeeShopId: parseInt(coffeeShopId)
+        }
+      },
+      update: reviewData,
+      create: {
+        userId,
+        coffeeShopId: parseInt(coffeeShopId),
+        ...reviewData
+      },
       include: {
         user: { select: { username: true } },
-        places: true,
-      },
+        coffeeShop: { select: { name: true } }
+      }
     });
-    res.json(suggestions);
-  } catch (error) {
-    console.error("Error fetching trip suggestions:", error);
-    res.status(500).json({ message: "Server error" });
+
+    res.status(200).json(review);
+  } catch (err) {
+    console.error("Error creating/updating review:", err);
+    res.status(500).json({ message: "Failed to create/update review." });
   }
 };
 
-// Fetch a single trip suggestion by ID
-export const getSingleSuggestion = async (req, res) => {
-  const suggestionId = parseInt(req.params.suggestionId);
-  if (!Number.isInteger(suggestionId)) {
-    return res.status(400).json({ message: "Invalid suggestion ID." });
+// Delete a review
+export const deleteReview = async (req, res) => {
+  const id = parseInt(req.params.id);
+  const userId = req.user?.id;
+
+  if (!Number.isInteger(id)) {
+    return res.status(400).json({ message: "Invalid review ID." });
   }
 
   try {
-    const suggestion = await prisma.tripSuggestion.findUnique({
-      where: { id: suggestionId },
-      include: {
-        user: { select: { username: true } },
-        places: true, 
-      },
+    const review = await prisma.userReview.findUnique({
+      where: { id }
     });
 
-    if (!suggestion) {
-      return res.status(404).json({ message: "Suggestion not found" });
+    if (!review) {
+      return res.status(404).json({ message: "Review not found." });
     }
 
-    res.json(suggestion);
-  } catch (error) {
-    console.error("Error fetching trip suggestion:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-// Add a new trip suggestion
-export const addSuggestion = async (req, res) => {
-  const { destination, description, image, website, category } = req.body;
-
-  if (!destination || typeof destination !== "string") {
-    return res.status(400).json({ message: "Destination is required." });
-  }
-
-  try {
-    const newSuggestion = await prisma.tripSuggestion.create({
-      data: {
-        userId: req.user.id,
-        destination,
-        description: description || "",
-        image: image || "",
-        website: website || "",
-        category: category || "General",
-      },
-    });
-
-    res.status(201).json(newSuggestion);
-  } catch (error) {
-    console.error("Error adding suggestion:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-// Add a place to a suggestion
-export const addPlaceToSuggestion = async (req, res) => {
-  const suggestionId = parseInt(req.params.suggestionId);
-  const {
-    name,
-    address,
-    latitude,
-    longitude,
-    category,
-  } = req.body;
-
-  if (!name || !suggestionId) {
-    return res.status(400).json({ message: "Name and suggestionId are required." });
-  }
-
-  try {
-    const place = await prisma.suggestionPlace.create({
-      data: {
-        suggestionId,
-        name,
-        address: address || "",
-        latitude: latitude != null ? parseFloat(latitude) : null,
-        longitude: longitude != null ? parseFloat(longitude) : null,
-        category: category || "General",
-      },
-    });
-
-    res.status(201).json(place);
-  } catch (error) {
-    console.error("Error adding place to suggestion:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-// Update a place in a suggestion
-export const updatePlaceInSuggestion = async (req, res) => {
-  const placeId = parseInt(req.params.placeId);
-  const { name } = req.body;
-
-  if (!name) return res.status(400).json({ message: "Place name is required." });
-
-  try {
-    const updatedPlace = await prisma.suggestionPlace.update({
-      where: { id: placeId },
-      data: { name },
-    });
-
-    res.json(updatedPlace);
-  } catch (error) {
-    console.error("Error updating place:", error);
-    res.status(500).json({ message: "Failed to update place" });
-  }
-};
-
-// Delete a place from a suggestion
-export const deletePlaceFromSuggestion = async (req, res) => {
-  const placeId = parseInt(req.params.placeId);
-
-  try {
-    await prisma.suggestionPlace.delete({ where: { id: placeId } });
-    res.json({ message: "Place deleted successfully" });
-  } catch (error) {
-    console.error("Error deleting place:", error);
-    res.status(500).json({ message: "Failed to delete place" });
-  }
-};
-
-// Delete a suggestion
-export const deleteSuggestion = async (req, res) => {
-  const suggestionId = parseInt(req.params.suggestionId);
-
-  try {
-    const suggestion = await prisma.tripSuggestion.findUnique({
-      where: { id: suggestionId },
-    });
-
-    if (!suggestion) {
-      return res.status(404).json({ message: "Suggestion not found" });
+    if (review.userId !== userId) {
+      return res.status(403).json({ message: "Not authorized to delete this review." });
     }
 
-    if (suggestion.userId !== req.user.id) {
-      return res.status(403).json({ message: "Not authorized to delete this suggestion" });
-    }
-
-    await prisma.tripSuggestion.delete({ where: { id: suggestionId } });
-    res.json({ message: "Suggestion deleted successfully" });
-  } catch (error) {
-    console.error("Error deleting suggestion:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-// Update suggestion metadata (not its places)
-export const updateSuggestion = async (req, res) => {
-  const suggestionId = parseInt(req.params.suggestionId);
-  const { destination, description, image, website, category } = req.body;
-
-  try {
-    const suggestion = await prisma.tripSuggestion.findUnique({
-      where: { id: suggestionId },
-    });
-
-    if (!suggestion) {
-      return res.status(404).json({ message: "Suggestion not found" });
-    }
-
-    if (suggestion.userId !== req.user.id) {
-      return res.status(403).json({ message: "Not authorized to update this suggestion" });
-    }
-
-    const updated = await prisma.tripSuggestion.update({
-      where: { id: suggestionId },
-      data: {
-        destination,
-        description: description || "",
-        image: image || "",
-        website: website || "",
-        category: category || "General",
-      },
-    });
-
-    res.status(200).json(updated);
-  } catch (error) {
-    console.error("Error updating suggestion:", error);
-    res.status(500).json({ message: "Server error" });
+    await prisma.userReview.delete({ where: { id } });
+    res.json({ message: "Review deleted successfully." });
+  } catch (err) {
+    console.error("Error deleting review:", err);
+    res.status(500).json({ message: "Failed to delete review." });
   }
 };
