@@ -1,0 +1,1 @@
+// Fetches locations from geopify API.

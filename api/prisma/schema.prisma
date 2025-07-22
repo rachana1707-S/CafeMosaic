@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  //relationMode = "prisma"
+}
+
+model User {
+  id          Int               @id @default(autoincrement())
+  username    String            @unique
+  email       String            @unique
+  password    String
+  name        String?
+  trips       Trip[]
+  suggestions TripSuggestion[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+model Trip {
+  id          Int        @id @default(autoincrement())
+  userId      Int
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  places      TripPlace[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model TripPlace {
+  id          Int      @id @default(autoincrement())
+  tripId      Int
+  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  placeId     String
+  name        String
+  address     String?
+  latitude    Float
+  longitude   Float
+  category    String?
+  notes       String?
+  order       Int
+  source      String   @default("Geoapify")
+  website     String?
+  phone       String?
+  imageUrl    String?
+  hours       String?  // NEW
+  city        String?  // NEW
+  state       String?  // NEW
+  country     String?  // NEW
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model TripSuggestion {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  destination String
+  description String?  @db.VarChar(1000)
+  image       String?  @db.VarChar(1000)
+  website     String?
+  category    String?
+  places      SuggestionPlace[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model SuggestionPlace {
+  id           Int              @id @default(autoincrement())
+  suggestionId Int
+  suggestion   TripSuggestion   @relation(fields: [suggestionId], references: [id], onDelete: Cascade)
+  name         String
+  address      String?
+  latitude     Float?
+  longitude    Float?
+  category     String?
+  hours        String?          // NEW
+  city         String?          // NEW
+  state        String?          // NEW
+  country      String?          // NEW
+  order        Int              @default(0)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+}

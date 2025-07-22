@@ -1,0 +1,1 @@
+// Handles login, registration, and logout requests.
