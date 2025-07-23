@@ -30,7 +30,7 @@ describe("Navbar Component", () => {
   it("renders user links and dropdown when logged in", () => {
     const mockLogout = vi.fn();
     useAuthUser.mockReturnValue({
-      user: { id: 1, username: "raghav" },
+      user: { id: 1, username: "rachana" },
       logout: mockLogout,
     });
 
@@ -40,7 +40,7 @@ describe("Navbar Component", () => {
       </BrowserRouter>
     );
 
-    expect(screen.getByText("raghav")).toBeInTheDocument();
+    expect(screen.getByText("rachana")).toBeInTheDocument();
     expect(screen.getByText("View Saved Plans")).toBeInTheDocument();
     expect(screen.getAllByText("My Suggestions").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Logout").length).toBeGreaterThan(0);

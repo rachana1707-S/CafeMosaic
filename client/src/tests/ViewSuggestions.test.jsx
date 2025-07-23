@@ -33,7 +33,7 @@ import { useAuthUser } from "../context/AuthContext";
 
 describe("ViewSuggestion Component", () => {
   it("renders suggestion details and edit button for the suggestion owner", () => {
-    useAuthUser.mockReturnValue({ user: { id: 123, username: "raghav" } });
+    useAuthUser.mockReturnValue({ user: { id: 123, username: "rachana" } });
 
     render(
       <MemoryRouter>
