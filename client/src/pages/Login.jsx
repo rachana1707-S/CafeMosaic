@@ -1,14 +1,16 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuthUser } from "../context/AuthContext";
-import logo from "../assets/logo-login.jpg";
-import backgroundImage from "../assets/wallpaper.png";
+import { Coffee, User, Lock, Eye, EyeOff } from "lucide-react";
+import backgroundImage from "../assets/coffee_login_bg.jpg"; // Coffee shop background
 
 export default function Login() {
   const { login } = useAuthUser();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -16,136 +18,212 @@ export default function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setError("");
 
     if (!username || !password) {
       setError("Please fill in both fields.");
       return;
     }
 
+    setLoading(true);
     try {
-      const response = await login(username, password);
-      if (response.ok) {
+      const result = await login(username, password);
+      if (result.success) {
         navigate(from, { replace: true });
       } else {
-        const data = await response.json();
-        setError(data.message || "Invalid credentials");
+        setError(result.error || "Invalid credentials");
       }
     } catch {
       setError("Error logging in. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div
-      className="d-flex justify-content-center align-items-center"
+      className="d-flex justify-content-center align-items-center min-vh-100"
       style={{
-        minHeight: "100vh",
-        width: "100%",
-        backgroundImage: `url(${backgroundImage})`,
+        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.4)), url(${backgroundImage})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
-        backdropFilter: "blur(6px)",
-        paddingTop: "70px",
-        paddingBottom: "30px",
+        paddingTop: "80px",
+        paddingBottom: "40px",
       }}
     >
-      <div
-        className="container"
-        style={{ maxWidth: "450px", width: "100%" }}
-      >
+      <div className="container" style={{ maxWidth: "450px" }}>
         <div
-          className="p-4 shadow"
+          className="card border-0 shadow-lg"
           style={{
-            background: "rgba(255, 255, 255, 0.5)",
+            background: "rgba(255, 255, 255, 0.95)",
             borderRadius: "20px",
             backdropFilter: "blur(10px)",
-            border: "1px solid rgba(255, 255, 255, 0.3)",
-            color: "black",
           }}
         >
-          {/* Logo */}
-          <div className="text-center mb-3">
-            <img
-              src={logo}
-              alt="Logo"
-              className="img-fluid"
-              style={{
-                maxWidth: "100px",
-                borderRadius: "10px",
-              }}
-            />
+          <div className="card-body p-5">
+            {/* Logo/Brand */}
+            <div className="text-center mb-4">
+              <div className="d-flex justify-content-center align-items-center mb-3">
+                <Coffee className="text-warning me-2" size={48} />
+                <h2 className="mb-0 fw-bold text-dark">CoffeeFinder</h2>
+              </div>
+              <p className="text-muted">Welcome back, coffee lover!</p>
+            </div>
+
+            <h3 className="text-center mb-4 fw-semibold">Sign In</h3>
+
+            {error && (
+              <div className="alert alert-danger border-0 rounded-3" role="alert">
+                <i className="fas fa-exclamation-triangle me-2"></i>
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleLogin}>
+              {/* Username Field */}
+              <div className="mb-4">
+                <label className="form-label fw-semibold">Username</label>
+                <div className="input-group">
+                  <span className="input-group-text border-0 bg-light">
+                    <User className="text-muted" size={20} />
+                  </span>
+                  <input
+                    type="text"
+                    className="form-control border-0 bg-light"
+                    placeholder="Enter your username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    style={{
+                      borderRadius: "0 12px 12px 0",
+                      padding: "14px 16px",
+                    }}
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+
+              {/* Password Field */}
+              <div className="mb-4">
+                <label className="form-label fw-semibold">Password</label>
+                <div className="input-group">
+                  <span className="input-group-text border-0 bg-light">
+                    <Lock className="text-muted" size={20} />
+                  </span>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    className="form-control border-0 bg-light"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    style={{
+                      padding: "14px 16px",
+                    }}
+                    disabled={loading}
+                  />
+                  <button
+                    type="button"
+                    className="btn btn-light border-0"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{ borderRadius: "0 12px 12px 0" }}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="text-muted" size={20} />
+                    ) : (
+                      <Eye className="text-muted" size={20} />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Login Button */}
+              <div className="d-grid mb-4">
+                <button
+                  type="submit"
+                  className="btn btn-warning btn-lg fw-semibold"
+                  disabled={loading}
+                  style={{
+                    borderRadius: "12px",
+                    padding: "14px 0",
+                    background: "linear-gradient(45deg, #ffc107, #ff8f00)",
+                    border: "none",
+                    boxShadow: "0 4px 15px rgba(255, 193, 7, 0.3)"
+                  }}
+                >
+                  {loading ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                      Signing In...
+                    </>
+                  ) : (
+                    <>
+                      <Coffee size={20} className="me-2" />
+                      Sign In
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Forgot Password */}
+              <div className="text-center mb-3">
+                <Link
+                  to="/forgot-password"
+                  className="text-muted text-decoration-none small"
+                  style={{ transition: "color 0.2s" }}
+                  onMouseEnter={(e) => e.target.style.color = "#ffc107"}
+                  onMouseLeave={(e) => e.target.style.color = "#6c757d"}
+                >
+                  Forgot your password?
+                </Link>
+              </div>
+            </form>
+
+            {/* Register Link */}
+            <div className="text-center pt-3 border-top">
+              <p className="mb-0 text-muted">
+                New to CoffeeFinder?{" "}
+                <Link
+                  to="/register"
+                  className="text-warning fw-semibold text-decoration-none"
+                  style={{ transition: "all 0.2s" }}
+                >
+                  Create an account
+                </Link>
+              </p>
+            </div>
+
+            {/* Social Login (Optional) */}
+            <div className="text-center mt-4">
+              <p className="text-muted small mb-3">Or continue with</p>
+              <div className="d-flex gap-2 justify-content-center">
+                <button className="btn btn-outline-secondary rounded-circle" style={{ width: "48px", height: "48px" }}>
+                  <i className="fab fa-google"></i>
+                </button>
+                <button className="btn btn-outline-secondary rounded-circle" style={{ width: "48px", height: "48px" }}>
+                  <i className="fab fa-facebook-f"></i>
+                </button>
+                <button className="btn btn-outline-secondary rounded-circle" style={{ width: "48px", height: "48px" }}>
+                  <i className="fab fa-apple"></i>
+                </button>
+              </div>
+            </div>
           </div>
+        </div>
 
-          <h3 className="text-center mb-4">Login</h3>
-
-          {error && <div className="alert alert-danger text-center">{error}</div>}
-
-          <form onSubmit={handleLogin}>
-            <div className="mb-3">
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Enter Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                style={{
-                  background: "rgba(255, 255, 255, 0.8)",
-                  border: "1px solid rgba(0, 0, 0, 0.2)",
-                  borderRadius: "10px",
-                  color: "black",
-                  padding: "10px",
-                }}
-              />
-            </div>
-
-            <div className="mb-3">
-              <input
-                type="password"
-                className="form-control"
-                placeholder="Enter Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={{
-                  background: "rgba(255, 255, 255, 0.8)",
-                  border: "1px solid rgba(0, 0, 0, 0.2)",
-                  borderRadius: "10px",
-                  color: "black",
-                  padding: "10px",
-                }}
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="btn"
-              style={{
-                backgroundColor: "#0077b6",
-                color: "white",
-                width: "100%",
-                borderRadius: "10px",
-                padding: "10px",
-                fontWeight: "bold",
-                transition: "0.3s",
-              }}
-            >
-              Login
-            </button>
-          </form>
-
-          <div className="text-center mt-3">
-            <p>
-              New user?{" "}
-              <Link
-                to="/register"
-                style={{
-                  color: "#0077b6",
-                  textDecoration: "none",
-                  fontWeight: "bold",
-                }}
-              >
-                Create an account
-              </Link>
-            </p>
+        {/* Quick Features */}
+        <div className="text-center mt-4">
+          <div className="d-flex justify-content-center flex-wrap gap-4">
+            <span className="text-white small">
+              <Coffee size={16} className="me-1" />
+              Find Coffee Shops
+            </span>
+            <span className="text-white small">
+              <i className="fas fa-heart me-1"></i>
+              Save Favorites
+            </span>
+            <span className="text-white small">
+              <i className="fas fa-star me-1"></i>
+              Write Reviews
+            </span>
           </div>
         </div>
       </div>
