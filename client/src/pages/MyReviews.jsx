@@ -1,221 +1,274 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthUser } from '../context/AuthContext';
+import { useCoffeeShops } from '../context/CoffeeShopContext';
 import { useNavigate } from 'react-router-dom';
-import fallbackImage from '../assets/fallback.webp'; 
+import { Star, Coffee, Edit2, Trash2, MapPin, Calendar, ThumbsUp } from 'lucide-react';
 
-export default function MySuggestions() {
+export default function MyReviews() {
   const { user } = useAuthUser();
-  const [showModal, setShowModal] = useState(false);
-  const [suggestions, setSuggestions] = useState([]);
-  const [formData, setFormData] = useState({
-    destination: '',
-    description: '',
-    image: '',
-    website: '',
-    category: '',
-  });
-  const [newPlace, setNewPlace] = useState('');
-  const [placeList, setPlaceList] = useState([]);
+  const { reviews, loadUserReviews } = useCoffeeShops();
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/api/suggestions`)
-      .then((res) => res.json())
-      .then((data) => {
-        const userSuggestions = data.filter(
-          (s) => s.userId === user?.id || s.username === user?.username
-        );
-        setSuggestions(userSuggestions);
-      })
-      .catch((error) => console.error('Error fetching suggestions:', error));
-  }, [user]);
+    const fetchReviews = async () => {
+      if (user?.id) {
+        await loadUserReviews();
+      }
+      setLoading(false);
+    };
+    
+    fetchReviews();
+  }, [user, loadUserReviews]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+  const handleEdit = (reviewId) => {
+    navigate(`/reviews/edit/${reviewId}`);
   };
 
-  const handleAddPlace = () => {
-    if (newPlace.trim()) {
-      setPlaceList((prev) => [...prev, newPlace.trim()]);
-      setNewPlace('');
-    }
-  };
-
-  const handleRemovePlace = (index) => {
-    setPlaceList((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const handleAddSuggestion = async (e) => {
-    e.preventDefault();
-    if (!formData.destination) {
-      alert('Destination is required!');
-      return;
-    }
+  const handleDelete = async (reviewId) => {
+    if (!window.confirm('Are you sure you want to delete this review?')) return;
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/suggestions`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-
-      const newSuggestion = await res.json();
-      if (!res.ok) {
-        alert(newSuggestion.message || 'Failed to add suggestion.');
-        return;
-      }
-
-      for (let place of placeList) {
-        await fetch(`${import.meta.env.VITE_API_URL}/api/suggestions/${newSuggestion.id}/places`, {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: place }),
-        });
-      }
-
-      setSuggestions([...suggestions, { ...newSuggestion, places: placeList }]);
-      setShowModal(false);
-      setFormData({ destination: '', description: '', image: '', website: '', category: '' });
-      setPlaceList([]);
-    } catch (error) {
-      alert('Error adding suggestion. Try again.');
-    }
-  };
-
-  const handleViewClick = (suggestion) => {
-    navigate(`/view-suggestion/${suggestion.id}`, { state: suggestion });
-  };
-
-  const handleDelete = async (id) => {
-    const confirmDelete = window.confirm('Are you sure you want to delete this suggestion?');
-    if (!confirmDelete) return;
-
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/suggestions/${id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/reviews/${reviewId}`, {
         method: 'DELETE',
-        credentials: 'include',
+        credentials: 'include'
       });
 
-      if (res.ok) {
-        setSuggestions(suggestions.filter((s) => s.id !== id));
+      if (response.ok) {
+        await loadUserReviews(); // Refresh reviews
       } else {
-        alert('Failed to delete suggestion.');
+        alert('Failed to delete review');
       }
     } catch (error) {
-      alert('Error deleting suggestion.');
+      console.error('Error deleting review:', error);
+      alert('Error deleting review');
     }
   };
+
+  const handleViewCoffeeShop = (coffeeShopId) => {
+    navigate(`/coffee-shops/${coffeeShopId}`);
+  };
+
+  const renderStars = (rating) => {
+    return [...Array(5)].map((_, index) => (
+      <Star
+        key={index}
+        size={16}
+        className={index < rating ? "text-warning" : "text-muted"}
+        fill={index < rating ? "currentColor" : "none"}
+      />
+    ));
+  };
+
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100">
+        <div className="text-center">
+          <Coffee size={48} className="text-warning mb-3 animate-pulse" />
+          <p className="text-muted">Loading your reviews...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mt-5">
-      <h1 className="text-center mb-4">My Suggestions</h1>
+      {/* Header */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 className="mb-1 d-flex align-items-center">
+            <Star className="text-warning me-2" size={32} />
+            My Coffee Shop Reviews
+          </h2>
+          <p className="text-muted mb-0">
+            You've written {reviews.length} review{reviews.length !== 1 ? 's' : ''}
+          </p>
+        </div>
+        <button 
+          className="btn btn-warning rounded-pill px-4 d-flex align-items-center"
+          onClick={() => navigate('/search')}
+        >
+          <Coffee size={20} className="me-2" />
+          Find Coffee Shops to Review
+        </button>
+      </div>
 
-      {user && (
-        <div className="mb-4 text-center">
-          <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-            Add Suggestion
+      {reviews.length === 0 ? (
+        <div className="text-center py-5">
+          <Star size={64} className="text-muted mb-3" />
+          <h4 className="text-muted mb-3">No reviews yet</h4>
+          <p className="text-muted mb-4">
+            Start exploring coffee shops and share your experiences with the community!
+          </p>
+          <button 
+            className="btn btn-warning rounded-pill px-4"
+            onClick={() => navigate('/search')}
+          >
+            <Coffee size={20} className="me-2" />
+            Discover Coffee Shops
           </button>
         </div>
-      )}
+      ) : (
+        <div className="row g-4">
+          {reviews.map((review) => (
+            <div key={review.id} className="col-12">
+              <div 
+                className="card border-0 shadow-sm h-100"
+                style={{ borderRadius: "16px" }}
+              >
+                <div className="card-body p-4">
+                  <div className="row">
+                    {/* Coffee Shop Info */}
+                    <div className="col-md-3">
+                      <div className="d-flex flex-column h-100">
+                        <img
+                          src={review.coffeeShop?.imageUrl || '/assets/cafe_placeholder.jpg'}
+                          alt={review.coffeeShop?.name}
+                          className="rounded-3"
+                          style={{ 
+                            width: "100%", 
+                            height: "120px", 
+                            objectFit: "cover" 
+                          }}
+                        />
+                        <h6 
+                          className="mt-2 mb-1 fw-bold text-truncate cursor-pointer"
+                          onClick={() => handleViewCoffeeShop(review.coffeeShopId)}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          {review.coffeeShop?.name}
+                        </h6>
+                        <small className="text-muted d-flex align-items-center">
+                          <MapPin size={12} className="me-1" />
+                          {review.coffeeShop?.city}, {review.coffeeShop?.state}
+                        </small>
+                      </div>
+                    </div>
 
-      <div className="row row-cols-1 row-cols-md-3 g-4">
-        {suggestions.length === 0 ? (
-          <div className="col-12 text-center">
-            <p>You haven't made any suggestions yet.</p>
-          </div>
-        ) : (
-          suggestions.map((suggestion) => (
-            <div className="col" key={suggestion.id}>
-              <div className="card h-100">
-                <img
-                  src={suggestion.image?.trim() ? suggestion.image : fallbackImage}
-                  alt="Suggestion"
-                  className="card-img-top"
-                  style={{ maxHeight: '200px', objectFit: 'cover' }}
-                />
-                <div className="card-body">
-                  <h5 className="card-title">{suggestion.destination}</h5>
-                  <p><strong>Category:</strong> {suggestion.category}</p>
-                </div>
-                <div className="card-footer d-flex justify-content-between">
-                  <button className="btn btn-info btn-sm" onClick={() => handleViewClick(suggestion)}>
-                    View
-                  </button>
-                  <button className="btn btn-danger btn-sm" onClick={() => handleDelete(suggestion.id)}>
-                    Delete
-                  </button>
+                    {/* Review Content */}
+                    <div className="col-md-7">
+                      <div className="d-flex align-items-center mb-2">
+                        <div className="d-flex me-3">
+                          {renderStars(review.rating)}
+                        </div>
+                        <span className="badge bg-light text-dark me-2">
+                          {review.rating}/5
+                        </span>
+                        {review.isRecommended && (
+                          <span className="badge bg-success">
+                            <ThumbsUp size={12} className="me-1" />
+                            Recommended
+                          </span>
+                        )}
+                      </div>
+
+                      {review.title && (
+                        <h6 className="fw-semibold mb-2">{review.title}</h6>
+                      )}
+
+                      {review.comment && (
+                        <p className="text-muted mb-2" style={{ 
+                          display: '-webkit-box',
+                          WebkitLineClamp: 3,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden'
+                        }}>
+                          {review.comment}
+                        </p>
+                      )}
+
+                      <div className="d-flex align-items-center text-muted small">
+                        <Calendar size={14} className="me-1" />
+                        <span className="me-3">
+                          Reviewed on {new Date(review.createdAt).toLocaleDateString()}
+                        </span>
+                        {review.visitDate && (
+                          <span>
+                            Visited on {new Date(review.visitDate).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="col-md-2">
+                      <div className="d-flex flex-column gap-2 h-100 justify-content-center">
+                        <button
+                          className="btn btn-outline-primary btn-sm rounded-pill"
+                          onClick={() => handleEdit(review.id)}
+                        >
+                          <Edit2 size={14} className="me-1" />
+                          Edit
+                        </button>
+                        <button
+                          className="btn btn-outline-danger btn-sm rounded-pill"
+                          onClick={() => handleDelete(review.id)}
+                        >
+                          <Trash2 size={14} className="me-1" />
+                          Delete
+                        </button>
+                        <button
+                          className="btn btn-outline-secondary btn-sm rounded-pill"
+                          onClick={() => handleViewCoffeeShop(review.coffeeShopId)}
+                        >
+                          <Coffee size={14} className="me-1" />
+                          View Shop
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
 
-      {showModal && (
-        <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Add Suggestion</h5>
-                <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
+      {/* Statistics */}
+      {reviews.length > 0 && (
+        <div className="row mt-5 pt-4 border-top">
+          <div className="col-md-12">
+            <h5 className="mb-3">Your Review Statistics</h5>
+          </div>
+          <div className="col-md-3 col-6 text-center mb-3">
+            <div className="card border-0 bg-light">
+              <div className="card-body">
+                <Star className="text-warning mb-2" size={24} />
+                <h6 className="fw-bold">{reviews.length}</h6>
+                <small className="text-muted">Total Reviews</small>
               </div>
-              <div className="modal-body">
-                <form onSubmit={handleAddSuggestion}>
-                  {['destination', 'description', 'image', 'website', 'category'].map((field) => (
-                    <div className="mb-3" key={field}>
-                      <label htmlFor={field} className="form-label">
-                        {field.charAt(0).toUpperCase() + field.slice(1)}
-                      </label>
-                      <input
-                        type="text"
-                        id={field}
-                        name={field}
-                        className="form-control"
-                        value={formData[field]}
-                        onChange={handleChange}
-                      />
-                    </div>
-                  ))}
-
-                  {/* Add Place Section */}
-                  <div className="mb-3">
-                    <label htmlFor="newPlace" className="form-label">Add Place</label>
-                    <div className="input-group">
-                      <input
-                        type="text"
-                        id="newPlace"
-                        className="form-control"
-                        value={newPlace}
-                        onChange={(e) => setNewPlace(e.target.value)}
-                        placeholder="Enter place name"
-                      />
-                      <button type="button" className="btn btn-primary" onClick={handleAddPlace}>
-                        Add
-                      </button>
-                    </div>
-                    {placeList.length > 0 && (
-                      <ul className="list-group mt-2">
-                        {placeList.map((place, idx) => (
-                          <li className="list-group-item d-flex justify-content-between align-items-center" key={idx}>
-                            {place}
-                            <button
-                              type="button"
-                              className="btn btn-sm btn-outline-danger"
-                              onClick={() => handleRemovePlace(idx)}
-                            >
-                              Remove
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-
-                  <button type="submit" className="btn btn-primary w-100">Add Suggestion</button>
-                </form>
+            </div>
+          </div>
+          <div className="col-md-3 col-6 text-center mb-3">
+            <div className="card border-0 bg-light">
+              <div className="card-body">
+                <Coffee className="text-warning mb-2" size={24} />
+                <h6 className="fw-bold">
+                  {(reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)}
+                </h6>
+                <small className="text-muted">Average Rating</small>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-3 col-6 text-center mb-3">
+            <div className="card border-0 bg-light">
+              <div className="card-body">
+                <ThumbsUp className="text-success mb-2" size={24} />
+                <h6 className="fw-bold">
+                  {reviews.filter(r => r.isRecommended).length}
+                </h6>
+                <small className="text-muted">Recommended</small>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-3 col-6 text-center mb-3">
+            <div className="card border-0 bg-light">
+              <div className="card-body">
+                <Calendar className="text-info mb-2" size={24} />
+                <h6 className="fw-bold">
+                  {new Set(reviews.map(r => new Date(r.createdAt).getMonth())).size}
+                </h6>
+                <small className="text-muted">Active Months</small>
               </div>
             </div>
           </div>
