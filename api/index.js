@@ -19,7 +19,6 @@ import globalErrorHandler, {
   notFoundHandler, 
   requestLogger, 
   responseTimeLogger,
-  corsErrorHandler,
   handleUncaughtException,
   handleUnhandledRejection
 } from './src/middleware/errorHandler.js';
@@ -38,6 +37,7 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5173',
   'http://localhost:5174', // In case you use a different port
+  'http://127.0.0.1:5173', // Sometimes localhost resolves to 127.0.0.1
   process.env.CLIENT_URL,
   process.env.FRONTEND_URL,
   'https://coffee-shop-finder.vercel.app', // Update with your actual domain
@@ -74,28 +74,47 @@ const corsOptions = {
     'Authorization',
     'Cache-Control'
   ],
-  optionsSuccessStatus: 200 // Some legacy browsers choke on 204
+  optionsSuccessStatus: 200, // Some legacy browsers choke on 204
+  preflightContinue: false // Pass control to next handler
 };
 
 // ✅ Security and logging middleware
-app.use(corsErrorHandler); // Custom CORS handler
 app.use(requestLogger); // Log all requests
 app.use(responseTimeLogger); // Log response times
 
-// ✅ Core middleware
+// ✅ Core middleware - CORS must be before routes
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // Handle preflight requests
+app.use('/api/*', cors(corsOptions)); // Explicit CORS for API routes
+app.options('*', cors(corsOptions)); // Handle preflight requests for all routes
+
 app.use(express.json({ limit: '10mb' })); // Increase limit for image uploads
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
+
+// ✅ Request debugging middleware (remove in production)
+if (process.env.NODE_ENV === 'development') {
+  app.use((req, res, next) => {
+    console.log(`📨 ${req.method} ${req.path}`, {
+      origin: req.get('origin'),
+      headers: req.headers.authorization ? 'Has Auth' : 'No Auth',
+      cookies: Object.keys(req.cookies).length > 0 ? 'Has Cookies' : 'No Cookies'
+    });
+    next();
+  });
+}
 
 // ✅ API Health check
 app.get('/', (req, res) => {
   res.json({
     success: true,
-    message: '☕ Coffee Shop Finder API is running!',
+    message: '☕ CafeMosaic API is running!',
     version: '1.0.0',
+    environment: process.env.NODE_ENV || 'development',
     timestamp: new Date().toISOString(),
+    cors: {
+      allowedOrigins: allowedOrigins,
+      currentOrigin: req.get('origin') || 'No origin header'
+    },
     endpoints: {
       auth: '/api/auth',
       search: '/api/search',
@@ -129,16 +148,17 @@ app.use(globalErrorHandler);
 
 // ✅ Start server with enhanced logging
 const server = app.listen(PORT, () => {
-  console.log('🚀 Coffee Shop Finder API Server Started');
+  console.log('🚀 CafeMosaic API Server Started');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log(`🌐 Server URL: http://localhost:${PORT}`);
   console.log(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🗄️ Database: ${process.env.DATABASE_URL ? '✅ Connected' : '❌ Not configured'}`);
   console.log(`🔑 Geoapify API: ${process.env.GEOAPIFY_API_KEY ? '✅ Configured' : '❌ Missing'}`);
   console.log(`🍪 JWT Secret: ${process.env.JWT_SECRET ? '✅ Configured' : '❌ Missing'}`);
+  console.log(`🌍 CORS Origins: ${allowedOrigins.join(', ')}`);
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log('🔗 Available Endpoints:');
-  console.log('  • GET  / - API Info');
+  console.log('  • GET  / - API Info & CORS Test');
   console.log('  • GET  /api/ping - Health Check');
   console.log('  • POST /api/auth/register - Register User');
   console.log('  • POST /api/auth/login - Login User');
@@ -149,6 +169,10 @@ const server = app.listen(PORT, () => {
   console.log('  • GET  /api/favorites - Get Favorites');
   console.log('  • GET  /api/categories - Get Categories');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  
+  // Test CORS setup
+  console.log('🧪 Testing CORS configuration...');
+  console.log(`   Visit http://localhost:${PORT} to verify CORS settings`);
 });
 
 // ✅ Graceful shutdown handling

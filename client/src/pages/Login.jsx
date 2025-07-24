@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuthUser } from "../context/AuthContext";
 import { Coffee, User, Lock, Eye, EyeOff } from "lucide-react";
-import backgroundImage from "../assets/coffee_login_bg.jpg"; // Coffee shop background
+import backgroundImage from "../assets/coffee_register_bg.jpg"; // Coffee shop background
 
 export default function Login() {
   const { login } = useAuthUser();

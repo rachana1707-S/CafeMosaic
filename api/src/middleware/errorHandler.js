@@ -1,7 +1,7 @@
 // ===== FILE: middleware/errorHandler.js =====
 
 // Custom error class for application errors
-export class AppError extends Error {
+class AppError extends Error {
   constructor(message, statusCode, errorCode = null) {
     super(message);
     this.statusCode = statusCode;
@@ -252,7 +252,7 @@ export const responseTimeLogger = (req, res, next) => {
 
 // CORS error handler
 export const corsErrorHandler = (req, res, next) => {
-  res.header('Access-Control-Allow-Origin', process.env.FRONTEND_URL || 'http://localhost:3000');
+  res.header('Access-Control-Allow-Origin', process.env.FRONTEND_URL || 'http://localhost:5173');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   res.header('Access-Control-Allow-Credentials', 'true');
@@ -264,5 +264,8 @@ export const corsErrorHandler = (req, res, next) => {
   }
 };
 
-export { AppError };
-export default globalErrorHandler;
+// Export all functions and classes
+export { 
+  AppError,
+  globalErrorHandler as default
+};

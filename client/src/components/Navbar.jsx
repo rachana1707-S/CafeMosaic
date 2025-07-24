@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthUser } from "../context/AuthContext";
 import { Coffee, Search, Heart, Star, MapPin, User } from "lucide-react";
-import logo from "../assets/coffee_logo.png"; // Coffee shop logo
+import logo from "../assets/coffee_logo.jpeg"; // Coffee shop logo
 
 export default function Navbar() {
   const { user, logout } = useAuthUser();

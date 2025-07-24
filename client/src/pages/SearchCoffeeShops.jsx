@@ -2,51 +2,63 @@ import React, { useEffect, useState } from "react";
 import { FaSearch } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
-import backgroundImage from "../assets/wallpaper.png";
+import backgroundImage from "../assets/wallpaper.webp";
 
-export default function PlanTrips() {
+export default function SearchCoffeeShops() {
   const navigate = useNavigate();
 
-  const [destination, setDestination] = useState("");
+  const [location, setLocation] = useState("");
   const [distance, setDistance] = useState("");
   const [category, setCategory] = useState("");
+  const [priceRange, setPriceRange] = useState("");
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("tripSearch"));
+    const saved = JSON.parse(localStorage.getItem("coffeeShopSearch"));
     if (saved) {
-      setDestination(saved.destination || "");
+      setLocation(saved.location || "");
       setDistance(saved.distance || "");
       setCategory(saved.category || "");
+      setPriceRange(saved.priceRange || "");
     }
   }, []);
 
   const handleSearch = (e) => {
     e.preventDefault();
 
-    if (!destination || !category) {
-      alert("Please fill all required fields!");
+    if (!location) {
+      alert("Please enter a location!");
       return;
     }
 
-    const distanceValue = distance.trim() === "" ? "50" : distance;
+    const distanceValue = distance.trim() === "" ? "10" : distance;
 
+    // For coffee shops, we'll use different categories
     let categoryValue = category;
     if (category === "any") {
       categoryValue = [
-        "tourism.attraction",
-        "catering.restaurant",
-        "leisure.park"
+        "catering.cafe",
+        "catering.restaurant.coffee",
+        "catering.fast_food.coffee"
       ].join(",");
     }
 
-    localStorage.setItem(
-      "tripSearch",
-      JSON.stringify({ destination, distance: distanceValue, category })
-    );
+    const searchParams = {
+      location,
+      distance: distanceValue,
+      category: categoryValue,
+      priceRange
+    };
 
-    navigate(
-      `/search-results?city=${encodeURIComponent(destination)}&distance=${distanceValue}&category=${categoryValue}`
-    );
+    localStorage.setItem("coffeeShopSearch", JSON.stringify(searchParams));
+
+    const queryParams = new URLSearchParams({
+      location: encodeURIComponent(location),
+      distance: distanceValue,
+      category: categoryValue,
+      ...(priceRange && { price: priceRange })
+    });
+
+    navigate(`/coffee-shop-results?${queryParams.toString()}`);
   };
 
   return (
@@ -58,7 +70,8 @@ export default function PlanTrips() {
         backgroundPosition: "center",
       }}
     >
-      <h1 className="mb-4 fw-bold text-white">Plan your Voyage!</h1>
+      <h1 className="mb-4 fw-bold text-white">Find Your Perfect Coffee Shop!</h1>
+      <p className="mb-5 text-white fs-5">Discover amazing coffee experiences near you</p>
 
       {/* Mobile/Tablet Layout */}
       <form
@@ -70,9 +83,10 @@ export default function PlanTrips() {
           <input
             type="text"
             className="form-control fs-6 py-2"
-            placeholder="Where are you going?"
-            value={destination}
-            onChange={(e) => setDestination(e.target.value)}
+            placeholder="Enter your location (city, address)"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            required
           />
         </div>
 
@@ -80,8 +94,9 @@ export default function PlanTrips() {
           <input
             type="number"
             min="1"
+            max="50"
             className="form-control fs-6 py-2"
-            placeholder="Enter Distance"
+            placeholder="Distance in km (default: 10)"
             value={distance}
             onChange={(e) => setDistance(e.target.value)}
           />
@@ -93,11 +108,25 @@ export default function PlanTrips() {
             value={category}
             onChange={(e) => setCategory(e.target.value)}
           >
-            <option value="">Select category</option>
-            <option value="tourism.attraction">Tourist Places</option>
-            <option value="catering.restaurant">Restaurants</option>
-            <option value="leisure.park">Parks</option>
-            <option value="any">All</option>
+            <option value="">Select coffee shop type</option>
+            <option value="catering.cafe">Cafes</option>
+            <option value="catering.restaurant.coffee">Coffee Restaurants</option>
+            <option value="catering.fast_food.coffee">Coffee Chains</option>
+            <option value="any">All Coffee Shops</option>
+          </select>
+        </div>
+
+        <div className="mb-3">
+          <select
+            className="form-select fs-6 py-2"
+            value={priceRange}
+            onChange={(e) => setPriceRange(e.target.value)}
+          >
+            <option value="">Any price range</option>
+            <option value="$">$ - Budget Friendly</option>
+            <option value="$$">$$ - Moderate</option>
+            <option value="$$$">$$$ - Premium</option>
+            <option value="$$$$">$$$$ - Luxury</option>
           </select>
         </div>
 
@@ -105,7 +134,8 @@ export default function PlanTrips() {
           className="btn btn-primary w-100 fs-6 py-2 rounded-pill"
           type="submit"
         >
-          Search
+          <FaSearch className="me-2" />
+          Find Coffee Shops
         </button>
       </form>
 
@@ -113,7 +143,7 @@ export default function PlanTrips() {
       <form
         onSubmit={handleSearch}
         className="w-100 d-none d-lg-flex align-items-center justify-content-center"
-        style={{ maxWidth: "1000px" }}
+        style={{ maxWidth: "1200px" }}
       >
         <div
           className="input-group shadow rounded-pill overflow-hidden bg-white w-100"
@@ -126,16 +156,18 @@ export default function PlanTrips() {
           <input
             type="text"
             className="form-control border-0 fs-6"
-            placeholder="Where are you going?"
-            value={destination}
-            onChange={(e) => setDestination(e.target.value)}
+            placeholder="Enter your location (city, address)"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            required
           />
 
           <input
             type="number"
             min="1"
+            max="50"
             className="form-control border-0 fs-6"
-            placeholder="Distance (default 50 km)"
+            placeholder="Distance (km)"
             value={distance}
             onChange={(e) => setDistance(e.target.value)}
           />
@@ -145,11 +177,23 @@ export default function PlanTrips() {
             value={category}
             onChange={(e) => setCategory(e.target.value)}
           >
-            <option value="">Select category</option>
-            <option value="tourism.attraction">Tourist Places</option>
-            <option value="catering.restaurant">Restaurants</option>
-            <option value="leisure.park">Parks</option>
-            <option value="any">All</option>
+            <option value="">Coffee shop type</option>
+            <option value="catering.cafe">Cafes</option>
+            <option value="catering.restaurant.coffee">Coffee Restaurants</option>
+            <option value="catering.fast_food.coffee">Coffee Chains</option>
+            <option value="any">All Coffee Shops</option>
+          </select>
+
+          <select
+            className="form-select border-0 fs-6"
+            value={priceRange}
+            onChange={(e) => setPriceRange(e.target.value)}
+          >
+            <option value="">Price range</option>
+            <option value="$">$</option>
+            <option value="$$">$$</option>
+            <option value="$$$">$$$</option>
+            <option value="$$$$">$$$$</option>
           </select>
 
           <button
@@ -160,6 +204,10 @@ export default function PlanTrips() {
           </button>
         </div>
       </form>
+
+      <div className="mt-4 text-white">
+        <small>💡 Tip: Leave distance empty to search within 10km by default</small>
+      </div>
     </div>
   );
 }
