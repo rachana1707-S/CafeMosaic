@@ -64,7 +64,8 @@ export function CoffeeShopProvider({ children }) {
   // Load categories (public data)
   const loadCategories = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/categories`);
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${apiUrl}/api/categories`);
       if (response.ok) {
         const data = await response.json();
         setCategories(data.categories || data);
@@ -74,26 +75,56 @@ export function CoffeeShopProvider({ children }) {
     }
   };
 
-  // Search coffee shops
+  // Search coffee shops - FIXED VERSION
   const searchCoffeeShops = async (searchParams) => {
+    console.log("🔍 Frontend search called with:", searchParams);
     setLoading(true);
     setError(null);
     
     try {
-      const params = new URLSearchParams(searchParams);
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/search?${params}`,
-        { credentials: 'include' }
-      );
+      // Build URL parameters
+      const params = new URLSearchParams();
       
-      if (response.ok) {
-        const data = await response.json();
-        setCoffeeShops(data.coffeeShops || []);
+      // Add parameters that exist and are not empty
+      Object.keys(searchParams).forEach(key => {
+        if (searchParams[key] && searchParams[key] !== "") {
+          params.append(key, searchParams[key]);
+        }
+      });
+      
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const fullUrl = `${apiUrl}/api/search?${params.toString()}`;
+      
+      console.log("🌐 API URL:", fullUrl);
+      console.log("🔑 VITE_API_URL:", import.meta.env.VITE_API_URL);
+      console.log("📋 Search params object:", searchParams);
+      console.log("📋 URL params string:", params.toString());
+      
+      const response = await fetch(fullUrl, { 
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log("📡 Response status:", response.status);
+      console.log("📡 Response ok:", response.ok);
+      
+      const data = await response.json();
+      console.log("📦 Response data:", data);
+      
+      if (response.ok && data.success) {
+        const shops = data.coffeeShops || [];
+        console.log("✅ Setting coffee shops:", shops.length);
+        console.log("✅ First shop:", shops[0]);
+        setCoffeeShops(shops);
         return data;
       } else {
-        throw new Error('Search failed');
+        console.error("❌ API returned error:", data);
+        throw new Error(data.error || `HTTP ${response.status}: Search failed`);
       }
     } catch (error) {
+      console.error("❌ Frontend search error:", error);
       setError(error.message);
       setCoffeeShops([]);
       return null;
@@ -108,8 +139,9 @@ export function CoffeeShopProvider({ children }) {
     
     setFavoritesLoading(true);
     try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/favorites/user/${user.id}`,
+        `${apiUrl}/api/favorites/user/${user.id}`,
         { credentials: 'include' }
       );
       
@@ -128,7 +160,8 @@ export function CoffeeShopProvider({ children }) {
     if (!isAuthenticated()) return { success: false, error: 'Please log in first' };
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/favorites`, {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${apiUrl}/api/favorites`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -154,8 +187,9 @@ export function CoffeeShopProvider({ children }) {
     if (!isAuthenticated()) return { success: false, error: 'Please log in first' };
 
     try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/favorites/${coffeeShopId}`,
+        `${apiUrl}/api/favorites/${coffeeShopId}`,
         {
           method: 'DELETE',
           credentials: 'include'
@@ -183,8 +217,9 @@ export function CoffeeShopProvider({ children }) {
     if (!user?.id) return;
 
     try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/collections/user/${user.id}`,
+        `${apiUrl}/api/collections/user/${user.id}`,
         { credentials: 'include' }
       );
       
@@ -201,7 +236,8 @@ export function CoffeeShopProvider({ children }) {
     if (!isAuthenticated()) return { success: false, error: 'Please log in first' };
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/collections`, {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${apiUrl}/api/collections`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -226,8 +262,9 @@ export function CoffeeShopProvider({ children }) {
     if (!user?.id) return;
 
     try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/reviews/user/${user.id}`,
+        `${apiUrl}/api/reviews/user/${user.id}`,
         { credentials: 'include' }
       );
       
@@ -244,7 +281,8 @@ export function CoffeeShopProvider({ children }) {
     if (!isAuthenticated()) return { success: false, error: 'Please log in first' };
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/reviews`, {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${apiUrl}/api/reviews`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -268,8 +306,9 @@ export function CoffeeShopProvider({ children }) {
     if (!user?.id) return;
 
     try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/visits/user/${user.id}`,
+        `${apiUrl}/api/visits/user/${user.id}`,
         { credentials: 'include' }
       );
       
@@ -286,7 +325,8 @@ export function CoffeeShopProvider({ children }) {
     if (!isAuthenticated()) return { success: false, error: 'Please log in first' };
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/visits`, {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${apiUrl}/api/visits`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -310,8 +350,9 @@ export function CoffeeShopProvider({ children }) {
     if (!user?.id) return;
 
     try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/search/history`,
+        `${apiUrl}/api/search/history`,
         { credentials: 'include' }
       );
       

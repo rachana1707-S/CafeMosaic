@@ -32,14 +32,18 @@ export default function SearchCoffeeShops() {
 
     const distanceValue = distance.trim() === "" ? "10" : distance;
 
-    // For coffee shops, we'll use different categories
+    // Use proper Geoapify categories for coffee shops
     let categoryValue = category;
     if (category === "any") {
       categoryValue = [
         "catering.cafe",
-        "catering.restaurant.coffee",
-        "catering.fast_food.coffee"
+        "catering.restaurant",
+        "catering.fast_food",
+        "catering.bar"
       ].join(",");
+    } else if (!category) {
+      // Default to cafe if no category selected
+      categoryValue = "catering.cafe";
     }
 
     const searchParams = {
@@ -54,7 +58,7 @@ export default function SearchCoffeeShops() {
     const queryParams = new URLSearchParams({
       location: encodeURIComponent(location),
       distance: distanceValue,
-      category: categoryValue,
+      categories: categoryValue, // Use 'categories' for Geoapify API
       ...(priceRange && { price: priceRange })
     });
 
@@ -108,11 +112,13 @@ export default function SearchCoffeeShops() {
             value={category}
             onChange={(e) => setCategory(e.target.value)}
           >
-            <option value="">Select coffee shop type</option>
-            <option value="catering.cafe">Cafes</option>
-            <option value="catering.restaurant.coffee">Coffee Restaurants</option>
-            <option value="catering.fast_food.coffee">Coffee Chains</option>
-            <option value="any">All Coffee Shops</option>
+            <option value="">All coffee places (default: Cafes)</option>
+            <option value="catering.cafe">☕ Cafes & Coffee Shops</option>
+            <option value="catering.restaurant">🍽️ Coffee Restaurants</option>
+            <option value="catering.fast_food">⚡ Coffee Chains (Fast Food)</option>
+            <option value="catering.bar">🍺 Coffee Bars & Espresso Bars</option>
+            <option value="catering.ice_cream">🍦 Coffee & Ice Cream</option>
+            <option value="any">🌟 All Coffee Places</option>
           </select>
         </div>
 
@@ -177,11 +183,13 @@ export default function SearchCoffeeShops() {
             value={category}
             onChange={(e) => setCategory(e.target.value)}
           >
-            <option value="">Coffee shop type</option>
-            <option value="catering.cafe">Cafes</option>
-            <option value="catering.restaurant.coffee">Coffee Restaurants</option>
-            <option value="catering.fast_food.coffee">Coffee Chains</option>
-            <option value="any">All Coffee Shops</option>
+            <option value="">Coffee type (default: Cafes)</option>
+            <option value="catering.cafe">☕ Cafes</option>
+            <option value="catering.restaurant">🍽️ Restaurants</option>
+            <option value="catering.fast_food">⚡ Chains</option>
+            <option value="catering.bar">🍺 Coffee Bars</option>
+            <option value="catering.ice_cream">🍦 Coffee & Desserts</option>
+            <option value="any">🌟 All Types</option>
           </select>
 
           <select
@@ -189,7 +197,7 @@ export default function SearchCoffeeShops() {
             value={priceRange}
             onChange={(e) => setPriceRange(e.target.value)}
           >
-            <option value="">Price range</option>
+            <option value="">Any price</option>
             <option value="$">$</option>
             <option value="$$">$$</option>
             <option value="$$$">$$$</option>
@@ -206,7 +214,17 @@ export default function SearchCoffeeShops() {
       </form>
 
       <div className="mt-4 text-white">
-        <small>💡 Tip: Leave distance empty to search within 10km by default</small>
+        <div className="row text-center">
+          <div className="col-md-4 mb-2">
+            <small>💡 <strong>Tip:</strong> Leave distance empty for 10km default</small>
+          </div>
+          <div className="col-md-4 mb-2">
+            <small>☕ <strong>Default:</strong> Searches cafes if no type selected</small>
+          </div>
+          <div className="col-md-4 mb-2">
+            <small>🌍 <strong>Coverage:</strong> Powered by Geoapify</small>
+          </div>
+        </div>
       </div>
     </div>
   );

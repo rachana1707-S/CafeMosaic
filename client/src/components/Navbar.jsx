@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthUser } from "../context/AuthContext";
 import { Coffee, Search, Heart, Star, MapPin, User } from "lucide-react";
-import logo from "../assets/coffee_logo.jpeg"; // Coffee shop logo
 
 export default function Navbar() {
   const { user, logout } = useAuthUser();
@@ -42,7 +41,7 @@ export default function Navbar() {
         <Link className="navbar-brand d-flex align-items-center" to="/">
           <Coffee className="text-warning me-2" size={32} />
           <span className="fw-bold text-dark" style={{ fontSize: '1.5rem' }}>
-            CoffeeFinder
+            CafeMosaic
           </span>
         </Link>
 
@@ -91,7 +90,7 @@ export default function Navbar() {
             {/* Search Coffee Shops */}
             <li className="nav-item">
               <Link
-                to="/search"
+                to="/search-coffee-shops"
                 className="nav-link px-3 py-2 d-flex align-items-center justify-content-center"
                 style={underlineHover}
                 onMouseEnter={(e) =>
@@ -109,7 +108,7 @@ export default function Navbar() {
             {/* Browse Reviews */}
             <li className="nav-item">
               <Link
-                to="/reviews"
+                to="/browse-reviews"
                 className="nav-link px-3 py-2 d-flex align-items-center justify-content-center"
                 style={underlineHover}
                 onMouseEnter={(e) =>
@@ -127,7 +126,7 @@ export default function Navbar() {
             {/* Coffee Shop Map */}
             <li className="nav-item">
               <Link
-                to="/map"
+                to="/coffee-shop-map"
                 className="nav-link px-3 py-2 d-flex align-items-center justify-content-center"
                 style={underlineHover}
                 onMouseEnter={(e) =>

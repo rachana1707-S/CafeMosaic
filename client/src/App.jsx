@@ -20,6 +20,7 @@ import MyReviews from './pages/MyReviews';
 import ReviewDetails from './pages/ReviewDetails';
 import BrowseReviews from './pages/BrowseReviews';
 import ProtectedRoute from './components/ProtectedRoute';
+import TestSearch from './pages/TestSearch';
 
 export default function App() {
   return (
@@ -31,44 +32,46 @@ export default function App() {
         
         {/* Coffee Shop Search & Discovery */}
         <Route path="/search-coffee-shops" element={<SearchCoffeeShops />} />
+        <Route path="/search-results" element={<SearchResults />} />
+        // In App.js, temporarily replace:
         <Route path="/coffee-shop-results" element={<SearchResults />} />
+
+        // With:
+        <Route path="/coffee-shop-results" element={<TestSearch />} />
         <Route path="/coffee-shop-map" element={<CoffeeShopMap />} />
         <Route path="/coffee-shops/:coffeeShopId" element={<CoffeeShopDetails />} />
 
-        {/* Collections (formerly Saved Plans) */}
+        {/* User Collections & Favorites */}
+        <Route path="/my-favorites" element={<ProtectedRoute><MyFavorites /></ProtectedRoute>} />
         <Route path="/my-collections" element={<ProtectedRoute><MyFavorites /></ProtectedRoute>} />
         <Route path="/collections/:id" element={<ProtectedRoute><ViewCollection /></ProtectedRoute>} />
         <Route path="/collections/:id/edit" element={<ProtectedRoute><EditReview /></ProtectedRoute>} />
         <Route path="/collections/:id/add-shops" element={<ProtectedRoute><SearchCoffeeShops /></ProtectedRoute>} />
 
-        {/* Reviews (formerly Suggestions) */}
+        {/* Reviews System - Match backend routes */}
         <Route path="/add-review" element={<ProtectedRoute><AddReview /></ProtectedRoute>} />
-        <Route path="/reviews/:reviewId/edit" element={<ProtectedRoute><EditReview /></ProtectedRoute>} /> 
-        <Route path="/reviews/:id" element={<ViewReview />} />
-        <Route path="/review-details/:id" element={<ReviewDetails />} />
         <Route path="/my-reviews" element={<ProtectedRoute><MyReviews /></ProtectedRoute>} />
         <Route path="/browse-reviews" element={<BrowseReviews />} />
+        <Route path="/reviews/:reviewId" element={<ViewReview />} />
+        <Route path="/reviews/:reviewId/edit" element={<ProtectedRoute><EditReview /></ProtectedRoute>} />
+        <Route path="/review-details/:id" element={<ReviewDetails />} />
+        
+        {/* Coffee Shop specific reviews - matches /reviews/coffee-shop/:coffeeShopId */}
+        <Route path="/coffee-shops/:coffeeShopId/reviews" element={<BrowseReviews />} />
+        
+        {/* User specific reviews - matches /reviews/user/:userId */}
+        <Route path="/users/:userId/reviews" element={<MyReviews />} />
 
-        {/* User Profile & Visits */}
+        {/* User Profile & Activity */}
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/my-visits" element={<ProtectedRoute><MyVisits /></ProtectedRoute>} />
-        <Route path="/my-favorites" element={<ProtectedRoute><MyFavorites /></ProtectedRoute>} />
+        
+        {/* Visit stats for coffee shops - matches /visits/stats/:coffeeShopId */}
+        <Route path="/coffee-shops/:coffeeShopId/visits" element={<MyVisits />} />
 
         {/* Authentication */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-
-        {/* Legacy Routes - Redirect to new equivalents */}
-        <Route path="/plan-trips" element={<SearchCoffeeShops />} />
-        <Route path="/saved-plans" element={<ProtectedRoute><MyFavorites /></ProtectedRoute>} />
-        <Route path="/suggested-plans" element={<BrowseReviews />}/> 
-        <Route path="/view-plan/:id" element={<ProtectedRoute><ViewCollection /></ProtectedRoute>} />
-        <Route path="/search-results" element={<SearchResults />} />
-        <Route path="/add-suggestion" element={<ProtectedRoute><AddReview /></ProtectedRoute>} />
-        <Route path="/edit-suggestion/:suggestionId" element={<ProtectedRoute><EditReview /></ProtectedRoute>} /> 
-        <Route path="/view-suggestion/:suggestionId" element={<ViewReview />} />
-        <Route path="/trip-suggestions/:suggestionId" element={<CoffeeShopDetails />} />
-        <Route path="/my-suggestions" element={<ProtectedRoute><MyReviews /></ProtectedRoute>} />
 
         {/* 404 Not Found */}
         <Route path="*" element={<NotFound />} />
