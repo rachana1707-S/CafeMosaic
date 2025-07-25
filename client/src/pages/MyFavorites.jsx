@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAuthUser } from "../context/AuthContext";
-import { useCoffeeShops } from "../context/CoffeeShopContext";
+import { useCoffeeShops } from "../context/FoodPlaceContext";
 import { useNavigate } from "react-router-dom";
 import { Heart, Coffee, Star, MapPin, Phone, Clock, ExternalLink } from "lucide-react";
 

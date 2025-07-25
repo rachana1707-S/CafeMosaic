@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthUser } from '../context/AuthContext';
-import { useCoffeeShops } from '../context/CoffeeShopContext';
+import { useCoffeeShops } from '../context/FoodPlaceContext';
 import { useNavigate } from 'react-router-dom';
 import { Star, Coffee, Edit2, Trash2, MapPin, Calendar, ThumbsUp } from 'lucide-react';
 

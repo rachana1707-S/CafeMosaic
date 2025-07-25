@@ -214,7 +214,7 @@ export default function SearchResults() {
           </button>
           <div className="flex-grow-1">
             <h2 className="mb-1 fw-bold">
-              Coffee Shops Near <span className="text-warning">{searchParams.location || 'You'}</span>
+              Food Places Near <span className="text-warning">{searchParams.location || 'You'}</span>
             </h2>
             <p className="text-muted mb-0">
               {allCoffeeShops.length} result{allCoffeeShops.length !== 1 ? 's' : ''} found
@@ -330,12 +330,12 @@ export default function SearchResults() {
         {/* Results */}
         {allCoffeeShops.length === 0 ? (
           <div className="text-center py-5">
-            <Coffee size={64} className="text-muted mb-3" />
-            <h4 className="text-muted mb-3">No coffee shops found</h4>
+            <Utensils size={64} className="text-muted mb-3" />
+            <h4 className="text-muted mb-3">No food places found</h4>
             <p className="text-muted mb-4">Try a different location or adjust your search radius.</p>
             <button 
               className="btn btn-warning rounded-pill px-4"
-              onClick={() => navigate('/search-coffee-shops')}
+              onClick={() => navigate('/search-food-places')}
             >
               Advanced Search
             </button>
@@ -353,7 +353,7 @@ export default function SearchResults() {
                       cursor: "pointer",
                       transition: "transform 0.2s ease, box-shadow 0.2s ease"
                     }}
-                    onClick={() => navigate(`/coffee-shops/${shop.id || shop.placeId}`)}
+                    onClick={() => navigate(`/food-places/${shop.id || shop.placeId}`)}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.transform = "translateY(-4px)";
                       e.currentTarget.style.boxShadow = "0 8px 20px rgba(0,0,0,0.12)";
@@ -643,7 +643,7 @@ export default function SearchResults() {
             {/* Pagination Info */}
             {totalPages > 1 && (
               <div className="text-center text-muted small mb-4">
-                Showing {startIndex + 1} - {Math.min(endIndex, allCoffeeShops.length)} of {allCoffeeShops.length} coffee shops
+                Showing {startIndex + 1} - {Math.min(endIndex, allCoffeeShops.length)} of {allCoffeeShops.length} food places
               </div>
             )}
           </>
@@ -661,7 +661,7 @@ export default function SearchResults() {
             <div className="col-md-4 mb-3">
               <div className="text-muted small">
                 <MapPin size={16} className="me-1" />
-                Real-time coffee shop data
+                Real-time food place data
               </div>
             </div>
             <div className="col-md-4 mb-3">

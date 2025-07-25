@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/coffee-icon.jpg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="CafeMosaic is your ultimate coffee shop discovery app. Find amazing coffee shops, read reviews, create collections, and track your coffee journey. Discover your perfect cup of coffee today!"
+    />
+    <meta name="keywords" content="coffee shop, cafe finder, coffee reviews, coffee shop locator, coffee discovery, coffee collections, coffee maps, local coffee" />
+    <meta name="author" content="CafeMosaic" />
+    
+    <!-- Open Graph Meta Tags for Social Sharing -->
+    <meta property="og:title" content="CafeMosaic - Discover Amazing Coffee Shops" />
+    <meta property="og:description" content="Find, review, and collect your favorite coffee shops. Your ultimate coffee discovery companion." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/coffee-og-image.jpg" />
+    <meta property="og:url" content="https://cafemosaic.com" />
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="CafeMosaic - Discover Amazing Coffee Shops" />
+    <meta name="twitter:description" content="Find, review, and collect your favorite coffee shops. Your ultimate coffee discovery companion." />
+    <meta name="twitter:image" content="/coffee-twitter-image.jpg" />
+    
+    <!-- Favicon variations -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    
+    <!-- Theme color for mobile browsers -->
+    <meta name="theme-color" content="#8B4513" />
+    <meta name="msapplication-TileColor" content="#8B4513" />
+    
+    <!-- Preconnect to external domains for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- Google Fonts for coffee-themed typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    
+    <title>CafeMosaic - Discover Your Perfect Coffee Experience</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    
+    <!-- Service Worker for PWA functionality (optional) -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
+  </body>
+</html>

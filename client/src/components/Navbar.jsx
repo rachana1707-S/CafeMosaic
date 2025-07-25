@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthUser } from "../context/AuthContext";
-import { Coffee, Search, Heart, Star, MapPin, User } from "lucide-react";
+import { Utensils, Search, Heart, Star, MapPin, User } from "lucide-react";
 
 export default function Navbar() {
   const { user, logout } = useAuthUser();
@@ -39,9 +39,9 @@ export default function Navbar() {
     >
       <div className="container-fluid">
         <Link className="navbar-brand d-flex align-items-center" to="/">
-          <Coffee className="text-warning me-2" size={32} />
+          <Utensils className="me-2" style={{ color: "#FFD700" }} size={32} />
           <span className="fw-bold text-dark" style={{ fontSize: '1.5rem' }}>
-            CafeMosaic
+            FoodSocial
           </span>
         </Link>
 
@@ -76,21 +76,21 @@ export default function Navbar() {
                 className="nav-link px-3 py-2 d-flex align-items-center justify-content-center"
                 style={underlineHover}
                 onMouseEnter={(e) =>
-                  (e.target.style.borderBottomColor = "#ffc107")
+                  (e.target.style.borderBottomColor = "#FFD700")
                 }
                 onMouseLeave={(e) =>
                   (e.target.style.borderBottomColor = "transparent")
                 }
               >
-                <Coffee size={18} className="me-1" />
+                <Utensils size={18} className="me-1" />
                 Home
               </Link>
             </li>
 
-            {/* Search Coffee Shops */}
+            {/* Search Food Places */}
             <li className="nav-item">
               <Link
-                to="/search-coffee-shops"
+                to="/search-food-places"
                 className="nav-link px-3 py-2 d-flex align-items-center justify-content-center"
                 style={underlineHover}
                 onMouseEnter={(e) =>
@@ -101,7 +101,7 @@ export default function Navbar() {
                 }
               >
                 <Search size={18} className="me-1" />
-                Find Coffee Shops
+                Find Food Places
               </Link>
             </li>
 
@@ -123,10 +123,10 @@ export default function Navbar() {
               </Link>
             </li>
 
-            {/* Coffee Shop Map */}
+            {/* Food Map */}
             <li className="nav-item">
               <Link
-                to="/coffee-shop-map"
+                to="/food-map"
                 className="nav-link px-3 py-2 d-flex align-items-center justify-content-center"
                 style={underlineHover}
                 onMouseEnter={(e) =>
@@ -206,7 +206,7 @@ export default function Navbar() {
                       (e.target.style.borderBottomColor = "transparent")
                     }
                   >
-                    My Visits
+                    My Food Journey
                   </Link>
                 </li>
 
@@ -259,8 +259,8 @@ export default function Navbar() {
                   >
                     <li>
                       <Link to="/my-collections" className="dropdown-item">
-                        <Coffee size={16} className="me-2" />
-                        My Collections
+                        <Utensils size={16} className="me-2" />
+                        My Food Collections
                       </Link>
                     </li>
                     <li>
@@ -272,7 +272,7 @@ export default function Navbar() {
                     <li>
                       <Link to="/my-visits" className="dropdown-item">
                         <MapPin size={16} className="me-2" />
-                        My Visits
+                        My Food Journey
                       </Link>
                     </li>
                     <li><hr className="dropdown-divider" /></li>

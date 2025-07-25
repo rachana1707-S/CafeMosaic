@@ -6,12 +6,12 @@ const CoffeeShopContext = createContext();
 export function useCoffeeShops() {
   const context = useContext(CoffeeShopContext);
   if (!context) {
-    throw new Error('useCoffeeShops must be used within a CoffeeShopProvider');
+    throw new Error('useCoffeeShops must be used within a FoodPlaceProvider');
   }
   return context;
 }
 
-export function CoffeeShopProvider({ children }) {
+export function FoodPlaceProvider({ children }) {
   // Coffee shop data
   const [coffeeShops, setCoffeeShops] = useState([]);
   const [favorites, setFavorites] = useState([]);

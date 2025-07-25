@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import { FaSearch } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
-import backgroundImage from "../assets/wallpaper.webp";
+import backgroundImage from "../assets/wallpaper.avif";
 
-export default function SearchCoffeeShops() {
+export default function SearchFoodPlaces() {
   const navigate = useNavigate();
 
   const [location, setLocation] = useState("");
@@ -13,7 +13,7 @@ export default function SearchCoffeeShops() {
   const [priceRange, setPriceRange] = useState("");
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("coffeeShopSearch"));
+    const saved = JSON.parse(localStorage.getItem("foodPlaceSearch"));
     if (saved) {
       setLocation(saved.location || "");
       setDistance(saved.distance || "");
@@ -32,18 +32,22 @@ export default function SearchCoffeeShops() {
 
     const distanceValue = distance.trim() === "" ? "10" : distance;
 
-    // Use proper Geoapify categories for coffee shops
+    // Use comprehensive food categories
     let categoryValue = category;
     if (category === "any") {
       categoryValue = [
         "catering.cafe",
         "catering.restaurant",
         "catering.fast_food",
-        "catering.bar"
+        "catering.bar",
+        "catering.pub",
+        "catering.food_court",
+        "catering.ice_cream",
+        "catering.biergarten"
       ].join(",");
     } else if (!category) {
-      // Default to cafe if no category selected
-      categoryValue = "catering.cafe";
+      // Default to popular food categories
+      categoryValue = "catering.restaurant,catering.cafe,catering.bar";
     }
 
     const searchParams = {
@@ -53,16 +57,16 @@ export default function SearchCoffeeShops() {
       priceRange
     };
 
-    localStorage.setItem("coffeeShopSearch", JSON.stringify(searchParams));
+    localStorage.setItem("foodPlaceSearch", JSON.stringify(searchParams));
 
     const queryParams = new URLSearchParams({
       location: encodeURIComponent(location),
       distance: distanceValue,
-      categories: categoryValue, // Use 'categories' for Geoapify API
+      categories: categoryValue,
       ...(priceRange && { price: priceRange })
     });
 
-    navigate(`/coffee-shop-results?${queryParams.toString()}`);
+    navigate(`/search-results?${queryParams.toString()}`);
   };
 
   return (
@@ -74,8 +78,8 @@ export default function SearchCoffeeShops() {
         backgroundPosition: "center",
       }}
     >
-      <h1 className="mb-4 fw-bold text-white">Find Your Perfect Coffee Shop!</h1>
-      <p className="mb-5 text-white fs-5">Discover amazing coffee experiences near you</p>
+      <h1 className="mb-4 fw-bold text-white">Find Your Perfect Food Experience!</h1>
+      <p className="mb-5 text-white fs-5">Discover restaurants, cafes, bars, and more amazing places to eat & drink</p>
 
       {/* Mobile/Tablet Layout */}
       <form
@@ -112,13 +116,15 @@ export default function SearchCoffeeShops() {
             value={category}
             onChange={(e) => setCategory(e.target.value)}
           >
-            <option value="">All coffee places (default: Cafes)</option>
+            <option value="">All food places (default: Popular)</option>
+            <option value="catering.restaurant">🍽️ Restaurants</option>
             <option value="catering.cafe">☕ Cafes & Coffee Shops</option>
-            <option value="catering.restaurant">🍽️ Coffee Restaurants</option>
-            <option value="catering.fast_food">⚡ Coffee Chains (Fast Food)</option>
-            <option value="catering.bar">🍺 Coffee Bars & Espresso Bars</option>
-            <option value="catering.ice_cream">🍦 Coffee & Ice Cream</option>
-            <option value="any">🌟 All Coffee Places</option>
+            <option value="catering.bar">🍺 Bars & Pubs</option>
+            <option value="catering.fast_food">🍔 Fast Food & Chains</option>
+            <option value="catering.food_court">🥘 Food Courts</option>
+            <option value="catering.ice_cream">🍦 Ice Cream & Desserts</option>
+            <option value="catering.biergarten">🍻 Beer Gardens</option>
+            <option value="any">🌟 All Food & Drink Places</option>
           </select>
         </div>
 
@@ -132,7 +138,7 @@ export default function SearchCoffeeShops() {
             <option value="$">$ - Budget Friendly</option>
             <option value="$$">$$ - Moderate</option>
             <option value="$$$">$$$ - Premium</option>
-            <option value="$$$$">$$$$ - Luxury</option>
+            <option value="$$$$">$$$$ - Fine Dining</option>
           </select>
         </div>
 
@@ -141,7 +147,7 @@ export default function SearchCoffeeShops() {
           type="submit"
         >
           <FaSearch className="me-2" />
-          Find Coffee Shops
+          Find Food Places
         </button>
       </form>
 
@@ -183,12 +189,14 @@ export default function SearchCoffeeShops() {
             value={category}
             onChange={(e) => setCategory(e.target.value)}
           >
-            <option value="">Coffee type (default: Cafes)</option>
-            <option value="catering.cafe">☕ Cafes</option>
+            <option value="">Food type (default: Popular)</option>
             <option value="catering.restaurant">🍽️ Restaurants</option>
-            <option value="catering.fast_food">⚡ Chains</option>
-            <option value="catering.bar">🍺 Coffee Bars</option>
-            <option value="catering.ice_cream">🍦 Coffee & Desserts</option>
+            <option value="catering.cafe">☕ Cafes</option>
+            <option value="catering.bar">🍺 Bars</option>
+            <option value="catering.fast_food">🍔 Fast Food</option>
+            <option value="catering.food_court">🥘 Food Courts</option>
+            <option value="catering.ice_cream">🍦 Desserts</option>
+            <option value="catering.biergarten">🍻 Beer Gardens</option>
             <option value="any">🌟 All Types</option>
           </select>
 
@@ -219,7 +227,7 @@ export default function SearchCoffeeShops() {
             <small>💡 <strong>Tip:</strong> Leave distance empty for 10km default</small>
           </div>
           <div className="col-md-4 mb-2">
-            <small>☕ <strong>Default:</strong> Searches cafes if no type selected</small>
+            <small>🍽️ <strong>Default:</strong> Searches restaurants, cafes & bars</small>
           </div>
           <div className="col-md-4 mb-2">
             <small>🌍 <strong>Coverage:</strong> Powered by Geoapify</small>
