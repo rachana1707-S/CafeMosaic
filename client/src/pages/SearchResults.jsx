@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Coffee, ArrowLeft, Search, MapPin, Star, Phone, Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import { Utensils, ArrowLeft, Search, MapPin, Star, Phone, Clock, ChevronLeft, ChevronRight, Heart } from "lucide-react";
 
 export default function SearchResults() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [allCoffeeShops, setAllCoffeeShops] = useState([]);
+  const [allFoodPlaces, setAllFoodPlaces] = useState([]);
+  const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchParams, setSearchParams] = useState({});
@@ -21,8 +22,8 @@ export default function SearchResults() {
 
   const queryParams = new URLSearchParams(location.search);
 
-  // Coffee shop placeholder images
-  const coffeeImages = [
+  // Food place placeholder images
+  const foodImages = [
     'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=200&fit=crop&auto=format&q=80',
     'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400&h=200&fit=crop&auto=format&q=80',
     'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400&h=200&fit=crop&auto=format&q=80',
@@ -30,15 +31,15 @@ export default function SearchResults() {
     'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=200&fit=crop&auto=format&q=80'
   ];
 
-  const getRandomCoffeeImage = () => {
-    return coffeeImages[Math.floor(Math.random() * coffeeImages.length)];
+  const getRandomFoodImage = () => {
+    return foodImages[Math.floor(Math.random() * foodImages.length)];
   };
 
   // Pagination calculations
-  const totalPages = Math.ceil(allCoffeeShops.length / itemsPerPage);
+  const totalPages = Math.ceil(allFoodPlaces.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentCoffeeShops = allCoffeeShops.slice(startIndex, endIndex);
+  const currentFoodPlaces = allFoodPlaces.slice(startIndex, endIndex);
 
   useEffect(() => {
     const params = {
@@ -52,11 +53,12 @@ export default function SearchResults() {
     setSearchParams(params);
     setQuickSearchLocation(params.location);
     setQuickSearchRadius(params.distance);
-    setCurrentPage(1); // Reset to first page on new search
-    searchCoffeeShops(params);
+    setCurrentPage(1);
+    searchFoodPlaces(params);
+    loadFavorites();
   }, [location.search]);
 
-  const searchCoffeeShops = async (params) => {
+  const searchFoodPlaces = async (params) => {
     console.log("🚀 Starting search with params:", params);
     setLoading(true);
     setError(null);
@@ -91,9 +93,9 @@ export default function SearchResults() {
       console.log("📦 Response data:", data);
       
       if (data.success) {
-        const shops = data.coffeeShops || [];
-        console.log("✅ Coffee shops received:", shops.length);
-        setAllCoffeeShops(shops);
+        const places = data.coffeeShops || [];
+        console.log("✅ Food places received:", places.length);
+        setAllFoodPlaces(places);
       } else {
         throw new Error(data.error || 'Search failed');
       }
@@ -104,6 +106,74 @@ export default function SearchResults() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadFavorites = async () => {
+    try {
+      // Get from localStorage for now (you can replace with API call)
+      const savedFavorites = JSON.parse(localStorage.getItem('foodPlaceFavorites') || '[]');
+      setFavorites(savedFavorites);
+    } catch (error) {
+      console.error("Error loading favorites:", error);
+    }
+  };
+
+  const handleAddToFavorites = async (foodPlace) => {
+    try {
+      let updatedFavorites;
+      const isAlreadyFavorite = favorites.some(fav => fav.id === foodPlace.id || fav.placeId === foodPlace.placeId);
+      
+      if (isAlreadyFavorite) {
+        // Remove from favorites
+        updatedFavorites = favorites.filter(fav => 
+          fav.id !== foodPlace.id && fav.placeId !== foodPlace.placeId
+        );
+        alert(`${foodPlace.name} removed from favorites!`);
+      } else {
+        // Add to favorites
+        const favoritePlace = {
+          id: foodPlace.id || foodPlace.placeId,
+          placeId: foodPlace.placeId || foodPlace.id,
+          name: foodPlace.name,
+          address: foodPlace.address,
+          rating: foodPlace.rating,
+          distance: foodPlace.distance,
+          category: foodPlace.category,
+          imageUrl: foodPlace.imageUrl,
+          phone: foodPlace.phone,
+          website: foodPlace.website,
+          dateAdded: new Date().toISOString()
+        };
+        
+        updatedFavorites = [...favorites, favoritePlace];
+        alert(`${foodPlace.name} added to favorites!`);
+      }
+      
+      // Save to localStorage (replace with API call later)
+      localStorage.setItem('foodPlaceFavorites', JSON.stringify(updatedFavorites));
+      setFavorites(updatedFavorites);
+      
+      // TODO: Replace with actual API call
+      // const response = await fetch('/api/favorites', {
+      //   method: isAlreadyFavorite ? 'DELETE' : 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   credentials: 'include',
+      //   body: JSON.stringify({ foodPlaceId: foodPlace.id })
+      // });
+      
+    } catch (error) {
+      console.error("Error managing favorites:", error);
+      alert("Error updating favorites. Please try again.");
+    }
+  };
+
+  const isFavorite = (foodPlace) => {
+    return favorites.some(fav => 
+      fav.id === foodPlace.id || 
+      fav.placeId === foodPlace.placeId ||
+      fav.id === foodPlace.placeId ||
+      fav.placeId === foodPlace.id
+    );
   };
 
   const handleQuickSearch = async (e) => {
@@ -123,14 +193,13 @@ export default function SearchResults() {
     };
 
     const queryParams = new URLSearchParams(newParams);
-    navigate(`/coffee-shop-results?${queryParams.toString()}`);
+    navigate(`/search-results?${queryParams.toString()}`);
     
     setQuickSearching(false);
   };
 
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
-    // Smooth scroll to top when changing pages
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -158,11 +227,11 @@ export default function SearchResults() {
     return (
       <div className="min-vh-100 d-flex align-items-center justify-content-center">
         <div className="text-center">
-          <Coffee size={64} className="text-warning mb-3" />
+          <Utensils size={64} className="text-warning mb-3" />
           <h4 className="text-muted">Brewing your results...</h4>
-          <p className="text-muted">Searching for coffee shops near you</p>
+          <p className="text-muted">Searching for food places near you</p>
           <div className="mt-3">
-            <div className="spinner-border text-warning" role="status">
+            <div className="spinner-border" style={{ color: "#FFD700" }} role="status">
               <span className="visually-hidden">Loading...</span>
             </div>
           </div>
@@ -176,19 +245,21 @@ export default function SearchResults() {
       <div className="container-fluid py-4" style={{ marginTop: '80px' }}>
         <div className="container">
           <div className="text-center py-5">
-            <Coffee size={64} className="text-danger mb-3" />
+            <Utensils size={64} className="text-danger mb-3" />
             <h4 className="text-danger mb-3">Search Error</h4>
             <p className="text-muted mb-4">{error}</p>
             <div className="d-flex gap-2 justify-content-center">
               <button 
-                className="btn btn-warning rounded-pill px-4"
-                onClick={() => navigate('/search-coffee-shops')}
+                className="btn rounded-pill px-4 text-dark fw-bold"
+                onClick={() => navigate('/search-food-places')}
+                style={{ backgroundColor: "#FFD700", border: "none" }}
               >
                 Try New Search
               </button>
               <button 
-                className="btn btn-outline-secondary rounded-pill px-4"
+                className="btn rounded-pill px-4 text-dark fw-bold"
                 onClick={() => window.location.reload()}
+                style={{ backgroundColor: "#FFD700", border: "none" }}
               >
                 Reload Page
               </button>
@@ -217,7 +288,7 @@ export default function SearchResults() {
               Food Places Near <span className="text-warning">{searchParams.location || 'You'}</span>
             </h2>
             <p className="text-muted mb-0">
-              {allCoffeeShops.length} result{allCoffeeShops.length !== 1 ? 's' : ''} found
+              {allFoodPlaces.length} result{allFoodPlaces.length !== 1 ? 's' : ''} found
               {searchParams.distance && ` within ${searchParams.distance} km`}
               {totalPages > 1 && (
                 <span className="ms-2">
@@ -273,8 +344,9 @@ export default function SearchResults() {
                 <div className="col-md-3">
                   <button 
                     type="submit" 
-                    className="btn btn-primary w-100"
+                    className="btn w-100 text-dark fw-bold"
                     disabled={quickSearching || !quickSearchLocation.trim()}
+                    style={{ backgroundColor: "#FFD700", border: "none" }}
                   >
                     {quickSearching ? (
                       <>
@@ -309,7 +381,7 @@ export default function SearchResults() {
             ].map((location) => (
               <button
                 key={location.city}
-                className="btn btn-outline-secondary btn-sm"
+                className="btn btn-sm text-dark fw-semibold"
                 onClick={() => {
                   setQuickSearchLocation(location.city);
                   const params = new URLSearchParams({
@@ -317,9 +389,13 @@ export default function SearchResults() {
                     categories: "catering.cafe",
                     distance: quickSearchRadius
                   });
-                  navigate(`/coffee-shop-results?${params.toString()}`);
+                  navigate(`/search-results?${params.toString()}`);
                 }}
-                style={{ borderRadius: '20px' }}
+                style={{ 
+                  borderRadius: '20px',
+                  backgroundColor: "#FFD700",
+                  border: "none"
+                }}
               >
                 {location.emoji} {location.city}
               </button>
@@ -328,14 +404,15 @@ export default function SearchResults() {
         </div>
 
         {/* Results */}
-        {allCoffeeShops.length === 0 ? (
+        {allFoodPlaces.length === 0 ? (
           <div className="text-center py-5">
             <Utensils size={64} className="text-muted mb-3" />
             <h4 className="text-muted mb-3">No food places found</h4>
             <p className="text-muted mb-4">Try a different location or adjust your search radius.</p>
             <button 
-              className="btn btn-warning rounded-pill px-4"
+              className="btn rounded-pill px-4 text-dark fw-bold"
               onClick={() => navigate('/search-food-places')}
+              style={{ backgroundColor: "#FFD700", border: "none" }}
             >
               Advanced Search
             </button>
@@ -344,16 +421,18 @@ export default function SearchResults() {
           <>
             {/* Current Page Results */}
             <div className="row g-4 mb-5">
-              {currentCoffeeShops.map((shop, index) => (
-                <div key={shop.id || shop.placeId || index} className="col-lg-6 col-xl-4">
+              {currentFoodPlaces.map((place, index) => (
+                <div key={place.id || place.placeId || index} className="col-lg-6 col-xl-4">
                   <div 
-                    className="card h-100 shadow-sm border-0" 
+                    className="card border-0 d-flex flex-column" 
                     style={{ 
                       borderRadius: "16px",
                       cursor: "pointer",
-                      transition: "transform 0.2s ease, box-shadow 0.2s ease"
+                      transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                      height: "100%",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.08)"
                     }}
-                    onClick={() => navigate(`/food-places/${shop.id || shop.placeId}`)}
+                    onClick={() => navigate(`/food-places/${place.id || place.placeId}`)}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.transform = "translateY(-4px)";
                       e.currentTarget.style.boxShadow = "0 8px 20px rgba(0,0,0,0.12)";
@@ -366,8 +445,8 @@ export default function SearchResults() {
                     {/* Image Container with Visible Overlays */}
                     <div className="position-relative overflow-hidden" style={{ borderRadius: "16px 16px 0 0" }}>
                       <img
-                        src={shop.imageUrl || getRandomCoffeeImage()}
-                        alt={shop.name}
+                        src={place.imageUrl || getRandomFoodImage()}
+                        alt={place.name}
                         className="card-img-top"
                         style={{ 
                           height: "200px", 
@@ -376,9 +455,8 @@ export default function SearchResults() {
                         onError={(e) => {
                           if (!e.target.dataset.fallback) {
                             e.target.dataset.fallback = "1";
-                            e.target.src = getRandomCoffeeImage();
+                            e.target.src = getRandomFoodImage();
                           } else {
-                            // Final fallback - create a coffee-themed div
                             const parent = e.target.parentNode;
                             parent.innerHTML = `
                               <div style="
@@ -391,15 +469,15 @@ export default function SearchResults() {
                                 font-size: 48px;
                                 border-radius: 16px 16px 0 0;
                               ">
-                                ☕
+                                🍽️
                               </div>
                             `;
                           }
                         }}
                       />
                       
-                      {/* Distance Badge - More Visible */}
-                      {shop.distance && (
+                      {/* Distance Badge */}
+                      {place.distance && (
                         <div 
                           className="position-absolute top-0 end-0 m-3"
                           style={{
@@ -412,16 +490,16 @@ export default function SearchResults() {
                             boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
                           }}
                         >
-                          📍 {shop.distance} km
+                          📍 {place.distance} km
                         </div>
                       )}
 
-                      {/* Rating Badge - More Visible */}
-                      {shop.rating && (
+                      {/* Rating Badge */}
+                      {place.rating && (
                         <div 
                           className="position-absolute top-0 start-0 m-3"
                           style={{
-                            backgroundColor: '#ffc107',
+                            backgroundColor: '#FFD700',
                             color: '#000',
                             padding: '6px 12px',
                             borderRadius: '20px',
@@ -430,12 +508,12 @@ export default function SearchResults() {
                             boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
                           }}
                         >
-                          ⭐ {shop.rating}
+                          ⭐ {place.rating}
                         </div>
                       )}
 
                       {/* Category Badge */}
-                      {shop.category && (
+                      {place.category && (
                         <div 
                           className="position-absolute bottom-0 start-0 m-3"
                           style={{
@@ -448,69 +526,70 @@ export default function SearchResults() {
                             textTransform: 'capitalize'
                           }}
                         >
-                          {shop.category.replace('catering.', '').replace('_', ' ')}
+                          {place.category.replace('catering.', '').replace('_', ' ')}
                         </div>
                       )}
                     </div>
                     
-                    <div className="card-body p-4">
+                    {/* Card Body */}
+                    <div className="card-body p-4 d-flex flex-column flex-grow-1">
                       <h5 className="card-title fw-bold mb-2" style={{ fontSize: '1.1rem' }}>
-                        {shop.name}
+                        {place.name}
                       </h5>
                       
                       <div className="d-flex align-items-start mb-3">
                         <MapPin size={14} className="text-muted me-2 mt-1 flex-shrink-0" />
                         <p className="card-text text-muted small mb-0">
-                          {shop.address || 'Address not available'}
+                          {place.address || 'Address not available'}
                         </p>
                       </div>
 
-                      {/* Coffee Shop Details */}
-                      <div className="mb-3">
-                        {shop.rating && (
+                      {/* Food Place Details */}
+                      <div className="mb-3 flex-grow-1">
+                        {place.rating && (
                           <div className="d-flex align-items-center mb-2">
                             <div className="d-flex me-2">
                               {[1,2,3,4,5].map((star) => (
                                 <Star 
                                   key={star}
                                   size={16} 
-                                  className={star <= Math.round(shop.rating) ? "text-warning" : "text-muted"}
-                                  fill={star <= Math.round(shop.rating) ? "currentColor" : "none"}
+                                  className={star <= Math.round(place.rating) ? "text-warning" : "text-muted"}
+                                  fill={star <= Math.round(place.rating) ? "currentColor" : "none"}
                                 />
                               ))}
                             </div>
-                            <span className="fw-semibold me-1">{shop.rating}</span>
+                            <span className="fw-semibold me-1">{place.rating}</span>
                             <span className="text-muted small">/5</span>
                           </div>
                         )}
 
-                        {shop.phone && (
+                        {place.phone && (
                           <div className="d-flex align-items-center mb-2">
                             <Phone size={14} className="text-muted me-2" />
                             <a 
-                              href={`tel:${shop.phone}`} 
+                              href={`tel:${place.phone}`} 
                               className="text-decoration-none small text-primary"
                               onClick={(e) => e.stopPropagation()}
                             >
-                              {shop.phone}
+                              {place.phone}
                             </a>
                           </div>
                         )}
 
-                        {shop.openingHours && (
+                        {place.openingHours && (
                           <div className="d-flex align-items-center mb-2">
                             <Clock size={14} className="text-success me-2" />
                             <span className="text-muted small">
-                              {typeof shop.openingHours === 'object' ? 'Check hours' : shop.openingHours}
+                              {typeof place.openingHours === 'object' ? 'Check hours' : place.openingHours}
                             </span>
                           </div>
                         )}
 
-                        {shop.website && (
+                        {place.website && (
                           <div className="d-flex align-items-center mb-2">
-                            <Coffee size={14} className="text-primary me-2" />
+                            <Utensils size={14} className="text-primary me-2" />
                             <a 
-                              href={shop.website.startsWith('http') ? shop.website : `https://${shop.website}`} 
+                              href={place.website.startsWith('http') ? place.website : `https://${place.website}`} 
                               target="_blank" 
                               rel="noopener noreferrer"
                               className="text-decoration-none small text-primary"
@@ -525,25 +604,33 @@ export default function SearchResults() {
                       {/* Action Buttons */}
                       <div className="d-flex gap-2 mt-auto">
                         <button 
-                          className="btn btn-primary btn-sm flex-fill"
+                          className="btn btn-sm flex-fill text-dark fw-bold"
                           onClick={(e) => {
                             e.stopPropagation();
-                            navigate(`/coffee-shops/${shop.id || shop.placeId}`);
+                            navigate(`/food-places/${place.id || place.placeId}`);
                           }}
-                          style={{ borderRadius: '8px' }}
+                          style={{ borderRadius: '8px', backgroundColor: "#FFD700", border: "none" }}
                         >
                           View Details
                         </button>
                         <button 
-                          className="btn btn-outline-danger btn-sm"
+                          className={`btn btn-sm ${isFavorite(place) ? 'text-danger' : 'text-dark'} fw-bold`}
                           onClick={(e) => {
                             e.stopPropagation();
-                            alert('Add to favorites functionality will be implemented');
+                            handleAddToFavorites(place);
                           }}
-                          style={{ borderRadius: '8px', width: '45px' }}
-                          title="Add to Favorites"
+                          style={{ 
+                            borderRadius: '8px', 
+                            width: '45px',
+                            backgroundColor: "#FFD700",
+                            border: "none"
+                          }}
+                          title={isFavorite(place) ? "Remove from Favorites" : "Add to Favorites"}
                         >
-                          <span style={{ fontSize: '14px' }}>❤️</span>
+                          <Heart 
+                            size={16} 
+                            fill={isFavorite(place) ? "currentColor" : "none"}
+                          />
                         </button>
                       </div>
                     </div>
@@ -555,9 +642,8 @@ export default function SearchResults() {
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="d-flex justify-content-center align-items-center mb-4">
-                <nav aria-label="Coffee shop search pagination">
+                <nav aria-label="Food place search pagination">
                   <ul className="pagination pagination-lg">
-                    {/* Previous Button */}
                     <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
                       <button
                         className="page-link"
@@ -569,7 +655,6 @@ export default function SearchResults() {
                       </button>
                     </li>
 
-                    {/* First Page */}
                     {currentPage > 3 && (
                       <>
                         <li className="page-item">
@@ -588,15 +673,14 @@ export default function SearchResults() {
                       </>
                     )}
 
-                    {/* Page Numbers */}
                     {generatePageNumbers().map((pageNum) => (
                       <li key={pageNum} className={`page-item ${currentPage === pageNum ? 'active' : ''}`}>
                         <button
                           className="page-link"
                           onClick={() => handlePageChange(pageNum)}
                           style={{
-                            backgroundColor: currentPage === pageNum ? '#ffc107' : 'transparent',
-                            borderColor: currentPage === pageNum ? '#ffc107' : '#dee2e6',
+                            backgroundColor: currentPage === pageNum ? '#FFD700' : 'transparent',
+                            borderColor: currentPage === pageNum ? '#FFD700' : '#dee2e6',
                             color: currentPage === pageNum ? '#000' : '#6c757d'
                           }}
                         >
@@ -605,7 +689,6 @@ export default function SearchResults() {
                       </li>
                     ))}
 
-                    {/* Last Page */}
                     {currentPage < totalPages - 2 && (
                       <>
                         {currentPage < totalPages - 3 && (
@@ -624,7 +707,6 @@ export default function SearchResults() {
                       </>
                     )}
 
-                    {/* Next Button */}
                     <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
                       <button
                         className="page-link"
@@ -640,10 +722,9 @@ export default function SearchResults() {
               </div>
             )}
 
-            {/* Pagination Info */}
             {totalPages > 1 && (
               <div className="text-center text-muted small mb-4">
-                Showing {startIndex + 1} - {Math.min(endIndex, allCoffeeShops.length)} of {allCoffeeShops.length} food places
+                Showing {startIndex + 1} - {Math.min(endIndex, allFoodPlaces.length)} of {allFoodPlaces.length} food places
               </div>
             )}
           </>
@@ -654,7 +735,7 @@ export default function SearchResults() {
           <div className="row text-center">
             <div className="col-md-4 mb-3">
               <div className="text-muted small">
-                <Coffee size={16} className="me-1" />
+                <Utensils size={16} className="me-1" />
                 Powered by Geoapify
               </div>
             </div>
