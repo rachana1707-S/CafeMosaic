@@ -8,7 +8,7 @@ export default function Home() {
     <div
       className="d-flex flex-column align-items-center justify-content-center min-vh-100 text-center position-relative"
       style={{
-        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.3)), url(${backgroundImage})`,
+        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.4)), url(${backgroundImage})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundAttachment: "fixed",
@@ -34,8 +34,8 @@ export default function Home() {
         <div className="d-flex flex-column flex-sm-row gap-3 justify-content-center mb-5">
           <Link 
             to="/search-food-places" 
-            className="btn btn-warning btn-lg shadow-lg px-5 py-3 rounded-pill fw-semibold d-flex align-items-center justify-content-center"
-            style={{ minWidth: "200px" }}
+            className="btn btn-lg shadow-lg px-5 py-3 rounded-pill fw-semibold d-flex align-items-center justify-content-center text-dark"
+            style={{ minWidth: "200px", backgroundColor: "#FFD700", border: "none" }}
           >
             <Search size={24} className="me-2" />
             Find Food Places
@@ -56,20 +56,23 @@ export default function Home() {
             <h4 className="text-white mb-4">🍽️ Explore Food Categories</h4>
             <div className="d-flex flex-wrap gap-3 justify-content-center">
               {[
-                { category: 'Cafes', emoji: '☕', value: 'catering.cafe' },
                 { category: 'Restaurants', emoji: '🍽️', value: 'catering.restaurant' },
                 { category: 'Fast Food', emoji: '🍔', value: 'catering.fast_food' },
-                { category: 'Bars & Pubs', emoji: '🍺', value: 'catering.bar' },
+                { category: 'Cafes', emoji: '☕', value: 'catering.cafe' },
                 { category: 'Food Courts', emoji: '🥘', value: 'catering.food_court' },
-                { category: 'Ice Cream', emoji: '🍦', value: 'catering.ice_cream' }
+                { category: 'Bars', emoji: '🍺', value: 'catering.bar' },
+                { category: 'Pubs', emoji: '🍻', value: 'catering.pub' },
+                { category: 'Ice Cream', emoji: '🍦', value: 'catering.ice_cream' },
+                { category: 'Beer Gardens', emoji: '🍻', value: 'catering.biergarten' },
+                { category: 'Taprooms', emoji: '🍺', value: 'catering.taproom' }
               ].map((cat) => (
                 <Link
                   key={cat.category}
                   to={`/search-results?location=Boston&categories=${cat.value}&distance=15`}
-                  className="btn btn-outline-light btn-sm rounded-pill px-4 py-2"
+                  className="btn btn-sm rounded-pill px-4 py-2 text-dark fw-semibold"
                   style={{ 
-                    backdropFilter: "blur(10px)",
-                    border: "1px solid rgba(255,255,255,0.3)"
+                    backgroundColor: "#FFD700",
+                    border: "none"
                   }}
                 >
                   {cat.emoji} {cat.category}
@@ -95,10 +98,10 @@ export default function Home() {
                 <Link
                   key={location.city}
                   to={`/search-results?location=${encodeURIComponent(location.city)}&categories=catering.cafe,catering.restaurant,catering.bar&distance=15`}
-                  className="btn btn-outline-light btn-sm rounded-pill px-4 py-2"
+                  className="btn btn-sm rounded-pill px-4 py-2 text-dark fw-semibold"
                   style={{ 
-                    backdropFilter: "blur(10px)",
-                    border: "1px solid rgba(255,255,255,0.3)"
+                    backgroundColor: "#FFD700",
+                    border: "none"
                   }}
                 >
                   {location.emoji} {location.city}

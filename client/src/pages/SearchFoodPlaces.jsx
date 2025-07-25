@@ -32,23 +32,13 @@ export default function SearchFoodPlaces() {
 
     const distanceValue = distance.trim() === "" ? "10" : distance;
 
-    // Use comprehensive food categories
+    // Use comprehensive food categories - but remove the "any" option
     let categoryValue = category;
-    if (category === "any") {
-      categoryValue = [
-        "catering.cafe",
-        "catering.restaurant",
-        "catering.fast_food",
-        "catering.bar",
-        "catering.pub",
-        "catering.food_court",
-        "catering.ice_cream",
-        "catering.biergarten"
-      ].join(",");
-    } else if (!category) {
-      // Default to popular food categories
+    if (!category) {
+      // Default to popular food categories when no specific category selected
       categoryValue = "catering.restaurant,catering.cafe,catering.bar";
     }
+    // Remove the "any" category handling since we removed that option
 
     const searchParams = {
       location,
@@ -73,7 +63,7 @@ export default function SearchFoodPlaces() {
     <div
       className="d-flex flex-column align-items-center justify-content-center min-vh-100 text-center px-3"
       style={{
-        backgroundImage: `url(${backgroundImage})`,
+        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5)), url(${backgroundImage})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
@@ -118,13 +108,14 @@ export default function SearchFoodPlaces() {
           >
             <option value="">All food places (default: Popular)</option>
             <option value="catering.restaurant">🍽️ Restaurants</option>
-            <option value="catering.cafe">☕ Cafes & Coffee Shops</option>
-            <option value="catering.bar">🍺 Bars & Pubs</option>
-            <option value="catering.fast_food">🍔 Fast Food & Chains</option>
+            <option value="catering.fast_food">🍔 Fast Food</option>
+            <option value="catering.cafe">☕ Cafes</option>
             <option value="catering.food_court">🥘 Food Courts</option>
-            <option value="catering.ice_cream">🍦 Ice Cream & Desserts</option>
+            <option value="catering.bar">🍺 Bars</option>
+            <option value="catering.pub">🍻 Pubs</option>
+            <option value="catering.ice_cream">🍦 Ice Cream</option>
             <option value="catering.biergarten">🍻 Beer Gardens</option>
-            <option value="any">🌟 All Food & Drink Places</option>
+            <option value="catering.taproom">🍺 Taprooms</option>
           </select>
         </div>
 
@@ -143,8 +134,9 @@ export default function SearchFoodPlaces() {
         </div>
 
         <button
-          className="btn btn-primary w-100 fs-6 py-2 rounded-pill"
+          className="btn w-100 fs-6 py-2 rounded-pill text-dark fw-bold"
           type="submit"
+          style={{ backgroundColor: "#FFD700", border: "none" }}
         >
           <FaSearch className="me-2" />
           Find Food Places
@@ -191,13 +183,14 @@ export default function SearchFoodPlaces() {
           >
             <option value="">Food type (default: Popular)</option>
             <option value="catering.restaurant">🍽️ Restaurants</option>
-            <option value="catering.cafe">☕ Cafes</option>
-            <option value="catering.bar">🍺 Bars</option>
             <option value="catering.fast_food">🍔 Fast Food</option>
+            <option value="catering.cafe">☕ Cafes</option>
             <option value="catering.food_court">🥘 Food Courts</option>
-            <option value="catering.ice_cream">🍦 Desserts</option>
+            <option value="catering.bar">🍺 Bars</option>
+            <option value="catering.pub">🍻 Pubs</option>
+            <option value="catering.ice_cream">🍦 Ice Cream</option>
             <option value="catering.biergarten">🍻 Beer Gardens</option>
-            <option value="any">🌟 All Types</option>
+            <option value="catering.taproom">🍺 Taprooms</option>
           </select>
 
           <select
@@ -213,8 +206,9 @@ export default function SearchFoodPlaces() {
           </select>
 
           <button
-            className="btn btn-primary px-4 fs-6 rounded-0"
+            className="btn px-4 fs-6 rounded-0 text-dark fw-bold"
             type="submit"
+            style={{ backgroundColor: "#FFD700", border: "none" }}
           >
             Search
           </button>
