@@ -22,17 +22,59 @@ export default function SearchResults() {
 
   const queryParams = new URLSearchParams(location.search);
 
-  // Food place placeholder images
-  const foodImages = [
-    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=200&fit=crop&auto=format&q=80',
-    'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400&h=200&fit=crop&auto=format&q=80',
-    'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400&h=200&fit=crop&auto=format&q=80',
-    'https://images.unsplash.com/photo-1521017432531-fbd92d768814?w=400&h=200&fit=crop&auto=format&q=80',
-    'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=200&fit=crop&auto=format&q=80'
-  ];
+  // Category-specific placeholder images
+  const foodImages = {
+    restaurant: [
+      'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=200&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=400&h=200&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=400&h=200&fit=crop&auto=format&q=80'
+    ],
+    cafe: [
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=200&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400&h=200&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400&h=200&fit=crop&auto=format&q=80'
+    ],
+    bar: [
+      'https://images.unsplash.com/photo-1566737236500-c8ac43014a8e?w=400&h=200&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=400&h=200&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=400&h=200&fit=crop&auto=format&q=80'
+    ],
+    pub: [
+      'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=400&h=200&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=200&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=400&h=200&fit=crop&auto=format&q=80'
+    ],
+    fast_food: [
+      'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=400&h=200&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1513639776629-7b61b0ac49cb?w=400&h=200&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=200&fit=crop&auto=format&q=80'
+    ],
+    food_court: [
+      'https://images.unsplash.com/photo-1567521464027-f32a2d9b9e89?w=400&h=200&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=200&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400&h=200&fit=crop&auto=format&q=80'
+    ],
+    ice_cream: [
+      'https://images.unsplash.com/photo-1488900128323-21503983a07e?w=400&h=200&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1563227812-0ea4c22e6cc8?w=400&h=200&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1579952363873-27d3bfad9c0d?w=400&h=200&fit=crop&auto=format&q=80'
+    ],
+    biergarten: [
+      'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=200&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1436076863939-06870fe779c2?w=400&h=200&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400&h=200&fit=crop&auto=format&q=80'
+    ],
+    taproom: [
+      'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=400&h=200&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1436076863939-06870fe779c2?w=400&h=200&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=200&fit=crop&auto=format&q=80'
+    ]
+  };
 
-  const getRandomFoodImage = () => {
-    return foodImages[Math.floor(Math.random() * foodImages.length)];
+  const getImageForCategory = (category) => {
+    const categoryType = category ? category.replace('catering.', '') : 'restaurant';
+    const categoryImages = foodImages[categoryType] || foodImages.restaurant;
+    return categoryImages[Math.floor(Math.random() * categoryImages.length)];
   };
 
   // Pagination calculations
@@ -445,7 +487,7 @@ export default function SearchResults() {
                     {/* Image Container with Visible Overlays */}
                     <div className="position-relative overflow-hidden" style={{ borderRadius: "16px 16px 0 0" }}>
                       <img
-                        src={place.imageUrl || getRandomFoodImage()}
+                        src={place.imageUrl || getImageForCategory(place.category)}
                         alt={place.name}
                         className="card-img-top"
                         style={{ 
@@ -455,7 +497,7 @@ export default function SearchResults() {
                         onError={(e) => {
                           if (!e.target.dataset.fallback) {
                             e.target.dataset.fallback = "1";
-                            e.target.src = getRandomFoodImage();
+                            e.target.src = getImageForCategory(place.category);
                           } else {
                             const parent = e.target.parentNode;
                             parent.innerHTML = `

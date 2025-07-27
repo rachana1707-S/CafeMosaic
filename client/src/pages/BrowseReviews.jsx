@@ -1,317 +1,673 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Star, Coffee, User, MapPin, Calendar, ThumbsUp, Filter } from "lucide-react";
+import { useAuthUser } from "../context/AuthContext";
+import { 
+  Star, 
+  Utensils, 
+  MapPin, 
+  Calendar, 
+  User, 
+  Search,
+  Plus,
+  ThumbsUp,
+  Eye,
+  RefreshCw
+} from "lucide-react";
 
 export default function BrowseReviews() {
+  const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuthUser();
+  
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('newest');
-  const navigate = useNavigate();
+  const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterRating, setFilterRating] = useState("");
+  const [filterCategory, setFilterCategory] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
+  const [currentPage, setCurrentPage] = useState(1);
+  const reviewsPerPage = 12;
 
+  // Food place images for reviews
+  const foodImages = [
+    'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=300&h=200&fit=crop&auto=format&q=80',
+    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=200&fit=crop&auto=format&q=80',
+    'https://images.unsplash.com/photo-1566737236500-c8ac43014a8e?w=300&h=200&fit=crop&auto=format&q=80',
+    'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=300&h=200&fit=crop&auto=format&q=80',
+  ];
+
+  const getRandomFoodImage = () => foodImages[Math.floor(Math.random() * foodImages.length)];
+
+  // Auto-refresh every 30 seconds to catch new reviews
   useEffect(() => {
-    fetchAllReviews();
+    loadReviews();
+
+    // Set up auto-refresh interval
+    const interval = setInterval(() => {
+      loadReviews(true); // Silent refresh
+    }, 30000); // Refresh every 30 seconds
+
+    // Cleanup interval on unmount
+    return () => clearInterval(interval);
   }, []);
 
-  const fetchAllReviews = async () => {
+  // Focus event listener to refresh when user comes back to tab
+  useEffect(() => {
+    const handleFocus = () => {
+      loadReviews(true); // Silent refresh when user returns to page
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, []);
+
+  const loadReviews = async (silent = false) => {
     try {
-      // Since we don't have a "get all reviews" endpoint, we'll simulate it
-      // In a real app, you'd have an endpoint like /api/reviews/public
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/coffee-shops`, {
-        credentials: 'include'
-      });
+      if (!silent) setLoading(true);
+      setRefreshing(true);
       
+      // Load real reviews from API
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${apiUrl}/api/reviews`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      let realReviews = [];
       if (response.ok) {
-        const coffeeShops = await response.json();
-        const allReviews = [];
+        const data = await response.json();
+        console.log("Real reviews loaded:", data);
+        realReviews = data.reviews || data || [];
         
-        // Collect all reviews from all coffee shops
-        coffeeShops.forEach(shop => {
-          if (shop.reviews) {
-            shop.reviews.forEach(review => {
-              allReviews.push({
-                ...review,
-                coffeeShop: {
-                  id: shop.id,
-                  name: shop.name,
-                  address: shop.address,
-                  city: shop.city,
-                  state: shop.state,
-                  imageUrl: shop.imageUrl
-                }
-              });
-            });
-          }
-        });
-        
-        setReviews(allReviews);
+        // Transform real reviews to match expected format
+        realReviews = realReviews.map(review => ({
+          ...review,
+          foodPlace: review.coffeeShop || {
+            id: review.coffeeShopId,
+            name: review.coffeeShopName || "Unknown Place",
+            address: review.address || "Address not available",
+            category: review.category || "catering.restaurant",
+            imageUrl: getRandomFoodImage(),
+            avgRating: review.avgRating || 4.0
+          },
+          helpfulCount: review.helpfulCount || 0,
+          photos: review.photos || []
+        }));
+      } else {
+        console.log("Failed to load real reviews, status:", response.status);
       }
+
+      // Mock reviews for demo purposes (only if no real reviews)
+      let mockReviews = [];
+      if (realReviews.length === 0) {
+        mockReviews = [
+          {
+            id: 'mock1',
+            rating: 5,
+            title: "Absolutely Amazing Experience!",
+            comment: "The food was incredible, service was top-notch, and the atmosphere was perfect for a date night. The pasta was cooked to perfection and the wine selection was excellent.",
+            visitDate: "2024-01-20",
+            createdAt: "2024-01-21T10:30:00Z",
+            user: {
+              id: 'mockuser1',
+              username: "foodie_lover",
+              reviewCount: 45
+            },
+            foodPlace: {
+              id: "place1",
+              name: "Delicious Italian Bistro",
+              address: "123 Main St, Boston, MA",
+              category: "catering.restaurant",
+              imageUrl: getRandomFoodImage(),
+              avgRating: 4.5
+            },
+            helpfulCount: 12,
+            photos: [getRandomFoodImage()]
+          },
+          {
+            id: 'mock2',
+            rating: 4,
+            title: "Great Coffee and Atmosphere",
+            comment: "Love this place for working remotely. Great WiFi, comfortable seating, and excellent coffee. The baristas are friendly and know their craft.",
+            visitDate: "2024-01-18",
+            createdAt: "2024-01-19T14:20:00Z",
+            user: {
+              id: 'mockuser2',
+              username: "coffee_enthusiast",
+              reviewCount: 28
+            },
+            foodPlace: {
+              id: "place2", 
+              name: "Urban Coffee Roasters",
+              address: "456 Brew St, Boston, MA",
+              category: "catering.cafe",
+              imageUrl: getRandomFoodImage(),
+              avgRating: 4.2
+            },
+            helpfulCount: 8,
+            photos: []
+          },
+          {
+            id: 'mock3',
+            rating: 3,
+            title: "Decent Bar Food",
+            comment: "The wings were good and the beer selection is solid. Service was a bit slow during peak hours but overall a decent experience.",
+            visitDate: "2024-01-15",
+            createdAt: "2024-01-16T18:45:00Z",
+            user: {
+              id: 'mockuser3',
+              username: "sports_fan",
+              reviewCount: 15
+            },
+            foodPlace: {
+              id: "place3",
+              name: "The Sports Corner",
+              address: "789 Game Ave, Boston, MA", 
+              category: "catering.bar",
+              imageUrl: getRandomFoodImage(),
+              avgRating: 3.8
+            },
+            helpfulCount: 5,
+            photos: [getRandomFoodImage(), getRandomFoodImage()]
+          }
+        ];
+      }
+
+      // Combine real reviews with mock reviews for demonstration
+      const combinedReviews = [...realReviews, ...mockReviews];
+      setReviews(combinedReviews);
+      
+      console.log(`Loaded ${realReviews.length} real reviews and ${mockReviews.length} mock reviews`);
+      
     } catch (error) {
-      console.error('Error fetching reviews:', error);
+      console.error("Error loading reviews:", error);
+      // Fallback to empty array if everything fails
+      setReviews([]);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  const handleViewCoffeeShop = (coffeeShopId) => {
-    navigate(`/coffee-shops/${coffeeShopId}`);
+  const handleRefresh = () => {
+    loadReviews();
   };
 
-  const handleViewReviewer = (userId) => {
-    navigate(`/users/${userId}/reviews`);
-  };
+  const handleMarkHelpful = async (reviewId) => {
+    if (!isAuthenticated()) {
+      alert("Please log in to mark reviews as helpful");
+      return;
+    }
 
-  const renderStars = (rating) => {
-    return [...Array(5)].map((_, index) => (
-      <Star
-        key={index}
-        size={16}
-        className={index < rating ? "text-warning" : "text-muted"}
-        fill={index < rating ? "currentColor" : "none"}
-      />
-    ));
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${apiUrl}/api/reviews/${reviewId}/helpful`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        // Update helpful count locally
+        setReviews(reviews.map(review => 
+          review.id === reviewId 
+            ? { ...review, helpfulCount: (review.helpfulCount || 0) + 1 }
+            : review
+        ));
+      } else {
+        console.error("Failed to mark as helpful");
+      }
+    } catch (error) {
+      console.error("Error marking review as helpful:", error);
+    }
   };
 
   const getFilteredAndSortedReviews = () => {
-    let filtered = reviews.filter(review => {
-      switch (filter) {
-        case 'high-rated':
-          return review.rating >= 4;
-        case 'recent':
-          const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-          return new Date(review.createdAt) > weekAgo;
-        case 'recommended':
-          return review.isRecommended;
-        default:
-          return true;
-      }
-    });
+    let filtered = reviews;
 
+    // Filter by search query
+    if (searchQuery) {
+      filtered = filtered.filter(review =>
+        review.foodPlace?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        review.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        review.comment?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Filter by rating
+    if (filterRating) {
+      filtered = filtered.filter(review => review.rating >= parseInt(filterRating));
+    }
+
+    // Filter by category
+    if (filterCategory) {
+      filtered = filtered.filter(review => 
+        review.foodPlace?.category === filterCategory
+      );
+    }
+
+    // Sort
     return filtered.sort((a, b) => {
       switch (sortBy) {
         case 'newest':
           return new Date(b.createdAt) - new Date(a.createdAt);
         case 'oldest':
           return new Date(a.createdAt) - new Date(b.createdAt);
-        case 'rating-high':
+        case 'highest_rating':
           return b.rating - a.rating;
-        case 'rating-low':
+        case 'lowest_rating':
           return a.rating - b.rating;
+        case 'most_helpful':
+          return (b.helpfulCount || 0) - (a.helpfulCount || 0);
         default:
-          return 0;
+          return new Date(b.createdAt) - new Date(a.createdAt);
       }
     });
   };
 
   const filteredReviews = getFilteredAndSortedReviews();
+  const totalPages = Math.ceil(filteredReviews.length / reviewsPerPage);
+  const startIndex = (currentPage - 1) * reviewsPerPage;
+  const currentReviews = filteredReviews.slice(startIndex, startIndex + reviewsPerPage);
+
+  const renderStars = (rating) => {
+    return (
+      <div className="d-flex align-items-center">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Star
+            key={star}
+            size={16}
+            className={star <= rating ? "text-warning" : "text-muted"}
+            fill={star <= rating ? "currentColor" : "none"}
+          />
+        ))}
+        <span className="ms-2 fw-semibold">{rating}</span>
+      </div>
+    );
+  };
+
+  const getCategoryBadgeColor = (category) => {
+    const colors = {
+      'catering.restaurant': 'bg-danger',
+      'catering.cafe': 'bg-primary', 
+      'catering.bar': 'bg-info',
+      'catering.fast_food': 'bg-warning',
+      'catering.ice_cream': 'bg-success',
+      'catering.food_court': 'bg-secondary'
+    };
+    return colors[category] || 'bg-secondary';
+  };
+
+  const getCategoryName = (category) => {
+    return category?.replace('catering.', '').replace('_', ' ').toUpperCase() || 'FOOD';
+  };
 
   if (loading) {
     return (
-      <div className="d-flex justify-content-center align-items-center vh-100">
+      <div className="min-vh-100 d-flex align-items-center justify-content-center">
         <div className="text-center">
-          <Star size={48} className="text-warning mb-3 animate-pulse" />
-          <p className="text-muted">Loading community reviews...</p>
+          <Star size={64} style={{ color: "#FFD700" }} className="mb-3" />
+          <h4 className="text-muted">Loading reviews...</h4>
+          <div className="spinner-border" style={{ color: "#FFD700" }} role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mt-5">
-      {/* Header */}
-      <div className="text-center mb-5">
-        <Star className="text-warning mb-3" size={48} />
-        <h1 className="fw-bold mb-3">Community Coffee Reviews</h1>
-        <p className="lead text-muted">
-          Discover what fellow coffee lovers are saying about local coffee shops
-        </p>
-      </div>
-
-      {/* Filters and Controls */}
-      <div className="row mb-4">
-        <div className="col-md-8">
-          <div className="d-flex flex-wrap gap-2">
-            <button
-              className={`btn btn-sm rounded-pill ${filter === 'all' ? 'btn-warning' : 'btn-outline-secondary'}`}
-              onClick={() => setFilter('all')}
+    <div className="container-fluid py-4" style={{ marginTop: '80px' }}>
+      <div className="container">
+        {/* Header */}
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <h2 className="fw-bold mb-1">
+              <Star size={32} className="me-2" style={{ color: "#FFD700" }} />
+              Food Reviews
+            </h2>
+            <p className="text-muted mb-0">
+              Discover what fellow food lovers are saying about local restaurants, cafes, and eateries
+            </p>
+          </div>
+          
+          <div className="d-flex gap-2">
+            <button 
+              className="btn btn-outline-secondary"
+              onClick={handleRefresh}
+              disabled={refreshing}
+              title="Refresh reviews"
             >
-              All Reviews ({reviews.length})
+              <RefreshCw size={18} className={refreshing ? "spin" : ""} />
             </button>
-            <button
-              className={`btn btn-sm rounded-pill ${filter === 'high-rated' ? 'btn-warning' : 'btn-outline-secondary'}`}
-              onClick={() => setFilter('high-rated')}
+            
+            <button 
+              className="btn text-dark fw-bold"
+              onClick={() => navigate('/add-review')}
+              style={{ backgroundColor: "#FFD700", border: "none" }}
             >
-              <Star size={14} className="me-1" />
-              High Rated (4-5 ⭐)
-            </button>
-            <button
-              className={`btn btn-sm rounded-pill ${filter === 'recent' ? 'btn-warning' : 'btn-outline-secondary'}`}
-              onClick={() => setFilter('recent')}
-            >
-              <Calendar size={14} className="me-1" />
-              This Week
-            </button>
-            <button
-              className={`btn btn-sm rounded-pill ${filter === 'recommended' ? 'btn-warning' : 'btn-outline-secondary'}`}
-              onClick={() => setFilter('recommended')}
-            >
-              <ThumbsUp size={14} className="me-1" />
-              Recommended
+              <Plus size={18} className="me-2" />
+              Write Review
             </button>
           </div>
         </div>
-        <div className="col-md-4">
-          <select 
-            className="form-select form-select-sm"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-          >
-            <option value="newest">Newest First</option>
-            <option value="oldest">Oldest First</option>
-            <option value="rating-high">Highest Rated</option>
-            <option value="rating-low">Lowest Rated</option>
-          </select>
-        </div>
-      </div>
 
-      {/* Reviews List */}
-      {filteredReviews.length === 0 ? (
-        <div className="text-center py-5">
-          <Star size={64} className="text-muted mb-3" />
-          <h4 className="text-muted mb-3">No reviews found</h4>
-          <p className="text-muted mb-4">
-            Try adjusting your filters or be the first to write a review!
-          </p>
-          <button 
-            className="btn btn-warning rounded-pill px-4"
-            onClick={() => navigate('/search')}
-          >
-            <Coffee size={20} className="me-2" />
-            Find Coffee Shops to Review
-          </button>
+        {/* Filters */}
+        <div className="card mb-4 shadow-sm">
+          <div className="card-body">
+            <div className="row g-3">
+              {/* Search */}
+              <div className="col-md-4">
+                <label className="form-label small text-muted">Search Reviews</label>
+                <div className="input-group">
+                  <span className="input-group-text bg-light border-end-0">
+                    <Search size={16} className="text-muted" />
+                  </span>
+                  <input
+                    type="text"
+                    className="form-control border-start-0"
+                    placeholder="Search by restaurant, review, or keywords"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Rating Filter */}
+              <div className="col-md-2">
+                <label className="form-label small text-muted">Min Rating</label>
+                <select
+                  className="form-select"
+                  value={filterRating}
+                  onChange={(e) => setFilterRating(e.target.value)}
+                >
+                  <option value="">All Ratings</option>
+                  <option value="4">4+ Stars</option>
+                  <option value="3">3+ Stars</option>
+                  <option value="2">2+ Stars</option>
+                  <option value="1">1+ Stars</option>
+                </select>
+              </div>
+
+              {/* Category Filter */}
+              <div className="col-md-3">
+                <label className="form-label small text-muted">Category</label>
+                <select
+                  className="form-select"
+                  value={filterCategory}
+                  onChange={(e) => setFilterCategory(e.target.value)}
+                >
+                  <option value="">All Categories</option>
+                  <option value="catering.restaurant">Restaurants</option>
+                  <option value="catering.cafe">Cafes</option>
+                  <option value="catering.bar">Bars</option>
+                  <option value="catering.fast_food">Fast Food</option>
+                  <option value="catering.ice_cream">Ice Cream</option>
+                  <option value="catering.food_court">Food Courts</option>
+                </select>
+              </div>
+
+              {/* Sort */}
+              <div className="col-md-3">
+                <label className="form-label small text-muted">Sort By</label>
+                <select
+                  className="form-select"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                >
+                  <option value="newest">Newest First</option>
+                  <option value="oldest">Oldest First</option>
+                  <option value="highest_rating">Highest Rating</option>
+                  <option value="lowest_rating">Lowest Rating</option>
+                  <option value="most_helpful">Most Helpful</option>
+                </select>
+              </div>
+            </div>
+          </div>
         </div>
-      ) : (
-        <div className="row g-4">
-          {filteredReviews.map((review) => (
-            <div key={review.id} className="col-12">
-              <div 
-                className="card border-0 shadow-sm"
-                style={{ borderRadius: "16px" }}
-              >
-                <div className="card-body p-4">
-                  <div className="row">
-                    {/* Coffee Shop Info */}
-                    <div className="col-md-3">
+
+        {/* Reviews Grid */}
+        {filteredReviews.length === 0 ? (
+          <div className="text-center py-5">
+            <Star size={64} className="text-muted mb-4" />
+            <h4 className="text-muted mb-3">No Reviews Found</h4>
+            <p className="text-muted mb-4">
+              {searchQuery || filterRating || filterCategory
+                ? "Try adjusting your search or filter criteria."
+                : "Be the first to write a review!"
+              }
+            </p>
+            <button 
+              className="btn text-dark fw-bold px-4"
+              onClick={() => navigate('/add-review')}
+              style={{ backgroundColor: "#FFD700", border: "none" }}
+            >
+              Write First Review
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="row g-4 mb-4">
+              {currentReviews.map((review) => (
+                <div key={review.id} className="col-lg-6 col-xl-4">
+                  <div 
+                    className="card h-100 border-0 shadow-sm"
+                    style={{ 
+                      borderRadius: '16px',
+                      transition: 'transform 0.2s ease, box-shadow 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-4px)';
+                      e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.12)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+                    }}
+                  >
+                    {/* Review Header */}
+                    <div className="card-header border-0 bg-white" style={{ borderRadius: '16px 16px 0 0' }}>
+                      <div className="d-flex justify-content-between align-items-start">
+                        <div className="flex-grow-1">
+                          <div className="d-flex align-items-center mb-2">
+                            {renderStars(review.rating)}
+                            <span 
+                              className={`badge ms-auto ${getCategoryBadgeColor(review.foodPlace?.category)} text-white`}
+                              style={{ fontSize: '0.7rem' }}
+                            >
+                              {getCategoryName(review.foodPlace?.category)}
+                            </span>
+                          </div>
+                          <h6 className="fw-bold mb-1">{review.title || `Review for ${review.foodPlace?.name || 'Restaurant'}`}</h6>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Food Place Info */}
+                    <div className="px-3 pb-2">
                       <div 
-                        className="cursor-pointer"
-                        onClick={() => handleViewCoffeeShop(review.coffeeShop.id)}
+                        className="d-flex align-items-center p-2 bg-light rounded cursor-pointer"
+                        onClick={() => navigate(`/food-places/${review.foodPlace?.id}`)}
                         style={{ cursor: 'pointer' }}
                       >
                         <img
-                          src={review.coffeeShop.imageUrl || '/assets/cafe_placeholder.jpg'}
-                          alt={review.coffeeShop.name}
-                          className="rounded-3 w-100"
-                          style={{ height: "120px", objectFit: "cover" }}
+                          src={review.foodPlace?.imageUrl || getRandomFoodImage()}
+                          alt={review.foodPlace?.name || 'Restaurant'}
+                          className="rounded me-3"
+                          style={{ width: '50px', height: '50px', objectFit: 'cover' }}
+                          onError={(e) => {
+                            e.target.src = getRandomFoodImage();
+                          }}
                         />
-                        <h6 className="mt-2 mb-1 fw-bold text-truncate">
-                          {review.coffeeShop.name}
-                        </h6>
-                        <small className="text-muted d-flex align-items-center">
-                          <MapPin size={12} className="me-1" />
-                          {review.coffeeShop.city}, {review.coffeeShop.state}
-                        </small>
+                        <div className="flex-grow-1">
+                          <h6 className="mb-1 fw-bold">{review.foodPlace?.name || 'Restaurant'}</h6>
+                          <p className="small text-muted mb-0">
+                            <MapPin size={12} className="me-1" />
+                            {review.foodPlace?.address || 'Address not available'}
+                          </p>
+                        </div>
+                        <div className="text-end">
+                          <div className="small fw-semibold">⭐ {review.foodPlace?.avgRating || 'N/A'}</div>
+                        </div>
                       </div>
                     </div>
 
                     {/* Review Content */}
-                    <div className="col-md-7">
-                      <div className="d-flex align-items-center mb-2">
-                        <div className="d-flex me-3">
-                          {renderStars(review.rating)}
+                    <div className="card-body pt-2">
+                      <p className="card-text mb-3">
+                        {review.comment && review.comment.length > 150 
+                          ? `${review.comment.substring(0, 150)}...` 
+                          : review.comment || 'No comment provided'
+                        }
+                      </p>
+
+                      {/* Review Photos */}
+                      {review.photos && review.photos.length > 0 && (
+                        <div className="mb-3">
+                          <div className="d-flex gap-2">
+                            {review.photos.slice(0, 3).map((photo, index) => (
+                              <img
+                                key={index}
+                                src={photo}
+                                alt="Review photo"
+                                className="rounded"
+                                style={{ 
+                                  width: '60px', 
+                                  height: '60px', 
+                                  objectFit: 'cover',
+                                  cursor: 'pointer'
+                                }}
+                                onClick={() => window.open(photo, '_blank')}
+                              />
+                            ))}
+                            {review.photos.length > 3 && (
+                              <div 
+                                className="d-flex align-items-center justify-content-center bg-light rounded text-muted"
+                                style={{ width: '60px', height: '60px', fontSize: '0.8rem' }}
+                              >
+                                +{review.photos.length - 3}
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        <span className="badge bg-light text-dark me-2">
-                          {review.rating}/5
-                        </span>
-                        {review.isRecommended && (
-                          <span className="badge bg-success">
-                            <ThumbsUp size={12} className="me-1" />
-                            Recommended
-                          </span>
-                        )}
-                      </div>
-
-                      {review.title && (
-                        <h6 className="fw-semibold mb-2">{review.title}</h6>
                       )}
 
-                      {review.comment && (
-                        <p className="text-muted mb-3">
-                          "{review.comment}"
-                        </p>
-                      )}
-
-                      <div className="d-flex align-items-center justify-content-between">
-                        <div className="d-flex align-items-center text-muted small">
+                      {/* Review Meta */}
+                      <div className="d-flex justify-content-between align-items-center text-muted small mb-3">
+                        <div className="d-flex align-items-center">
+                          <User size={14} className="me-1" />
+                          <span className="fw-semibold">{review.user?.username || 'Anonymous'}</span>
+                          <span className="ms-1">({review.user?.reviewCount || 1} reviews)</span>
+                        </div>
+                        <div className="d-flex align-items-center">
                           <Calendar size={14} className="me-1" />
-                          {new Date(review.createdAt).toLocaleDateString()}
-                          {review.visitDate && (
-                            <span className="ms-3">
-                              Visited: {new Date(review.visitDate).toLocaleDateString()}
-                            </span>
-                          )}
+                          {review.visitDate ? new Date(review.visitDate).toLocaleDateString() : new Date(review.createdAt).toLocaleDateString()}
                         </div>
                       </div>
-                    </div>
 
-                    {/* Reviewer Info */}
-                    <div className="col-md-2">
-                      <div 
-                        className="text-center cursor-pointer"
-                        onClick={() => handleViewReviewer(review.userId)}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        <div 
-                          className="rounded-circle bg-warning d-flex align-items-center justify-content-center mb-2 mx-auto"
-                          style={{ width: "48px", height: "48px" }}
+                      {/* Review Actions */}
+                      <div className="d-flex justify-content-between align-items-center">
+                        <button
+                          className="btn btn-sm btn-outline-secondary d-flex align-items-center"
+                          onClick={() => handleMarkHelpful(review.id)}
                         >
-                          <User size={24} className="text-white" />
+                          <ThumbsUp size={14} className="me-1" />
+                          Helpful ({review.helpfulCount || 0})
+                        </button>
+
+                        <div className="d-flex gap-2">
+                          <button
+                            className="btn btn-sm btn-outline-primary"
+                            onClick={() => navigate(`/reviews/${review.id}`)}
+                          >
+                            <Eye size={14} className="me-1" />
+                            Read Full
+                          </button>
+                          
+                          <button 
+                            className="btn btn-sm text-dark"
+                            onClick={() => navigate(`/food-places/${review.foodPlace?.id}`)}
+                            style={{ backgroundColor: "#FFD700", border: "none" }}
+                          >
+                            <Utensils size={14} className="me-1" />
+                            Visit Place
+                          </button>
                         </div>
-                        <h6 className="small fw-semibold mb-1">
-                          {review.user?.username || 'Anonymous'}
-                        </h6>
-                        <small className="text-muted">Reviewer</small>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
-      )}
 
-      {/* Pagination would go here in a real app */}
-      {filteredReviews.length > 0 && (
-        <div className="text-center mt-5">
-          <p className="text-muted">
-            Showing {filteredReviews.length} review{filteredReviews.length !== 1 ? 's' : ''}
-          </p>
-        </div>
-      )}
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="d-flex justify-content-center">
+                <nav>
+                  <ul className="pagination">
+                    <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                      <button
+                        className="page-link"
+                        onClick={() => setCurrentPage(currentPage - 1)}
+                        disabled={currentPage === 1}
+                      >
+                        Previous
+                      </button>
+                    </li>
+                    
+                    {[...Array(totalPages)].map((_, index) => (
+                      <li key={index + 1} className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}>
+                        <button
+                          className="page-link"
+                          onClick={() => setCurrentPage(index + 1)}
+                          style={{
+                            backgroundColor: currentPage === index + 1 ? '#FFD700' : 'transparent',
+                            borderColor: currentPage === index + 1 ? '#FFD700' : '#dee2e6',
+                            color: currentPage === index + 1 ? '#000' : '#6c757d'
+                          }}
+                        >
+                          {index + 1}
+                        </button>
+                      </li>
+                    ))}
+                    
+                    <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                      <button
+                        className="page-link"
+                        onClick={() => setCurrentPage(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                      >
+                        Next
+                      </button>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+            )}
+          </>
+        )}
 
-      {/* CTA Section */}
-      <div className="text-center mt-5 pt-5 border-top">
-        <h4 className="fw-bold mb-3">Share Your Coffee Experience</h4>
-        <p className="text-muted mb-4">
-          Help other coffee lovers discover great spots by writing your own reviews!
-        </p>
-        <button 
-          className="btn btn-warning btn-lg rounded-pill px-5"
-          onClick={() => navigate('/search')}
-        >
-          <Coffee size={20} className="me-2" />
-          Find Coffee Shops to Review
-        </button>
+        {/* Call to Action */}
+        <div className="mt-5 p-4 bg-light rounded">
+          <div className="text-center">
+            <h5 className="mb-3">Share Your Food Experience!</h5>
+            <p className="text-muted mb-3">
+              Help others discover amazing food places by sharing your honest reviews.
+            </p>
+            <button 
+              className="btn text-dark fw-bold px-4"
+              onClick={() => navigate('/add-review')}
+              style={{ backgroundColor: "#FFD700", border: "none" }}
+            >
+              <Plus size={18} className="me-2" />
+              Write Your Review
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

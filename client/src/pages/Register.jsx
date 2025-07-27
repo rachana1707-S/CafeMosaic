@@ -1,367 +1,262 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthUser } from "../context/AuthContext";
-import { Coffee, User, Mail, Lock, Eye, EyeOff, CheckCircle } from "lucide-react";
-import backgroundImage from "../assets/coffee_register_bg.jpg"; // Coffee shop background
+import { User, Mail, Lock, Eye, EyeOff, UserPlus } from "lucide-react";
+import backgroundImage from "../assets/food_background.avif"; // Your food background
 
 export default function Register() {
+  const navigate = useNavigate();
   const { register } = useAuthUser();
+  
   const [formData, setFormData] = useState({
     username: "",
     email: "",
-    name: "",
     password: "",
-    confirmPassword: "",
+    confirmPassword: ""
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+    if (error) setError(""); // Clear error when user types
   };
 
-  const validateForm = () => {
-    const { username, email, password, confirmPassword } = formData;
-
-    if (!username || !email || !password || !confirmPassword) {
-      setError("Please fill in all required fields.");
-      return false;
-    }
-
-    if (username.length < 3) {
-      setError("Username must be at least 3 characters long.");
-      return false;
-    }
-
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      setError("Please enter a valid email address.");
-      return false;
-    }
-
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters long.");
-      return false;
-    }
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleRegister = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
-
-    if (!validateForm()) return;
-
     setLoading(true);
-    try {
-      const result = await register({
-        username: formData.username,
-        email: formData.email,
-        name: formData.name || null,
-        password: formData.password,
-        preferences: {
-          unit: 'km',
-          defaultRadius: 5,
-          favoriteCategories: []
-        }
-      });
+    setError("");
 
+    // Validate passwords match
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords don't match");
+      setLoading(false);
+      return;
+    }
+
+    // Validate password length
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const result = await register(formData.username, formData.email, formData.password);
       if (result.success) {
-        setSuccess("Account created successfully! Redirecting to login...");
-        setTimeout(() => navigate("/login"), 2000);
+        navigate("/");
       } else {
-        setError(result.error || "Registration failed.");
-      } 
-    } catch {
-      setError("Error creating account. Please try again.");
+        setError(result.error || "Registration failed");
+      }
+    } catch (error) {
+      setError("An error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div
-      className="d-flex justify-content-center align-items-center min-vh-100"
+    <div 
+      className="d-flex align-items-center"
       style={{
-        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.4)), url(${backgroundImage})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        paddingTop: "80px",
-        paddingBottom: "40px",
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: "contain",
+        backgroundPosition: "left center",
+        backgroundRepeat: "no-repeat",
+        backgroundColor: "#f8f9fa",
+        height: "100vh",
+        paddingTop: "80px", // Space for navbar
+        paddingBottom: "20px", // Space for footer
+        overflow: "hidden", // Prevent scrolling
+        boxSizing: "border-box"
       }}
     >
-      <div className="container" style={{ maxWidth: "500px" }}>
-        <div
-          className="card border-0 shadow-lg"
-          style={{
-            background: "rgba(255, 255, 255, 0.95)",
-            borderRadius: "20px",
-            backdropFilter: "blur(10px)",
-          }}
-        >
-          <div className="card-body p-5">
-            {/* Logo/Brand */}
-            <div className="text-center mb-4">
-              <div className="d-flex justify-content-center align-items-center mb-3">
-                <Coffee className="text-warning me-2" size={48} />
-                <h2 className="mb-0 fw-bold text-dark">CoffeeFinder</h2>
-              </div>
-              <p className="text-muted">Join our community of coffee lovers!</p>
-            </div>
-
-            <h3 className="text-center mb-4 fw-semibold">Create Account</h3>
-
-            {error && (
-              <div className="alert alert-danger border-0 rounded-3" role="alert">
-                <i className="fas fa-exclamation-triangle me-2"></i>
-                {error}
-              </div>
-            )}
-
-            {success && (
-              <div className="alert alert-success border-0 rounded-3" role="alert">
-                <CheckCircle size={16} className="me-2" />
-                {success}
-              </div>
-            )}
-
-            <form onSubmit={handleRegister}>
-              {/* Username Field */}
-              <div className="mb-3">
-                <label className="form-label fw-semibold">
-                  Username <span className="text-danger">*</span>
-                </label>
-                <div className="input-group">
-                  <span className="input-group-text border-0 bg-light">
-                    <User className="text-muted" size={20} />
-                  </span>
-                  <input
-                    type="text"
-                    name="username"
-                    className="form-control border-0 bg-light"
-                    placeholder="Choose a username"
-                    value={formData.username}
-                    onChange={handleChange}
-                    style={{
-                      borderRadius: "0 12px 12px 0",
-                      padding: "12px 16px",
-                    }}
-                    disabled={loading}
-                  />
-                </div>
-              </div>
-
-              {/* Email Field */}
-              <div className="mb-3">
-                <label className="form-label fw-semibold">
-                  Email <span className="text-danger">*</span>
-                </label>
-                <div className="input-group">
-                  <span className="input-group-text border-0 bg-light">
-                    <Mail className="text-muted" size={20} />
-                  </span>
-                  <input
-                    type="email"
-                    name="email"
-                    className="form-control border-0 bg-light"
-                    placeholder="Enter your email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    style={{
-                      borderRadius: "0 12px 12px 0",
-                      padding: "12px 16px",
-                    }}
-                    disabled={loading}
-                  />
-                </div>
-              </div>
-
-              {/* Name Field (Optional) */}
-              <div className="mb-3">
-                <label className="form-label fw-semibold">Full Name</label>
-                <div className="input-group">
-                  <span className="input-group-text border-0 bg-light">
-                    <User className="text-muted" size={20} />
-                  </span>
-                  <input
-                    type="text"
-                    name="name"
-                    className="form-control border-0 bg-light"
-                    placeholder="Your full name (optional)"
-                    value={formData.name}
-                    onChange={handleChange}
-                    style={{
-                      borderRadius: "0 12px 12px 0",
-                      padding: "12px 16px",
-                    }}
-                    disabled={loading}
-                  />
-                </div>
-              </div>
-
-              {/* Password Field */}
-              <div className="mb-3">
-                <label className="form-label fw-semibold">
-                  Password <span className="text-danger">*</span>
-                </label>
-                <div className="input-group">
-                  <span className="input-group-text border-0 bg-light">
-                    <Lock className="text-muted" size={20} />
-                  </span>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    className="form-control border-0 bg-light"
-                    placeholder="Create a password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    style={{ padding: "12px 16px" }}
-                    disabled={loading}
-                  />
-                  <button
-                    type="button"
-                    className="btn btn-light border-0"
-                    onClick={() => setShowPassword(!showPassword)}
-                    style={{ borderRadius: "0 12px 12px 0" }}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="text-muted" size={20} />
-                    ) : (
-                      <Eye className="text-muted" size={20} />
-                    )}
-                  </button>
-                </div>
-                <small className="text-muted">At least 6 characters</small>
-              </div>
-
-              {/* Confirm Password Field */}
-              <div className="mb-4">
-                <label className="form-label fw-semibold">
-                  Confirm Password <span className="text-danger">*</span>
-                </label>
-                <div className="input-group">
-                  <span className="input-group-text border-0 bg-light">
-                    <Lock className="text-muted" size={20} />
-                  </span>
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    name="confirmPassword"
-                    className="form-control border-0 bg-light"
-                    placeholder="Confirm your password"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    style={{ padding: "12px 16px" }}
-                    disabled={loading}
-                  />
-                  <button
-                    type="button"
-                    className="btn btn-light border-0"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    style={{ borderRadius: "0 12px 12px 0" }}
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="text-muted" size={20} />
-                    ) : (
-                      <Eye className="text-muted" size={20} />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* Terms Agreement */}
-              <div className="mb-4">
-                <div className="form-check">
-                  <input
-                    type="checkbox"
-                    className="form-check-input"
-                    id="terms"
-                    required
-                    style={{ transform: "scale(1.1)" }}
-                  />
-                  <label className="form-check-label small" htmlFor="terms">
-                    I agree to the{" "}
-                    <Link to="/terms" className="text-warning text-decoration-none">
-                      Terms of Service
-                    </Link>{" "}
-                    and{" "}
-                    <Link to="/privacy" className="text-warning text-decoration-none">
-                      Privacy Policy
-                    </Link>
-                  </label>
-                </div>
-              </div>
-
-              {/* Register Button */}
-              <div className="d-grid mb-4">
-                <button
-                  type="submit"
-                  className="btn btn-warning btn-lg fw-semibold"
-                  disabled={loading}
-                  style={{
-                    borderRadius: "12px",
-                    padding: "14px 0",
-                    background: "linear-gradient(45deg, #ffc107, #ff8f00)",
-                    border: "none",
-                    boxShadow: "0 4px 15px rgba(255, 193, 7, 0.3)"
-                  }}
-                >
-                  {loading ? (
-                    <>
-                      <span className="spinner-border spinner-border-sm me-2" role="status"></span>
-                      Creating Account...
-                    </>
-                  ) : (
-                    <>
-                      <Coffee size={20} className="me-2" />
-                      Create Account
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
-
-            {/* Login Link */}
-            <div className="text-center pt-3 border-top">
-              <p className="mb-0 text-muted">
-                Already have an account?{" "}
-                <Link
-                  to="/login"
-                  className="text-warning fw-semibold text-decoration-none"
-                  style={{ transition: "all 0.2s" }}
-                >
-                  Sign in
-                </Link>
-              </p>
-            </div>
+      {/* Main Container */}
+      <div className="container-fluid h-100">
+        <div className="row h-100 align-items-center">
+          {/* Left side - Background space */}
+          <div className="col-lg-6 d-none d-lg-block">
+            {/* This space is for the background image */}
           </div>
-        </div>
+          
+          {/* Right side - Register Form */}
+          <div className="col-lg-6 col-md-12 d-flex align-items-center justify-content-center">
+            <div 
+              className="card shadow-lg border-0"
+              style={{ 
+                borderRadius: "16px",
+                background: "rgba(255, 255, 255, 0.95)",
+                backdropFilter: "blur(10px)",
+                width: "100%",
+                maxWidth: "400px"
+              }}
+            >
+              <div className="card-body p-4">
+                {/* Header */}
+                <div className="text-center mb-3">
+                  <div className="mb-2">
+                    <UserPlus size={36} style={{ color: "#FFD700" }} />
+                  </div>
+                  <h3 className="fw-bold mb-1">Join FoodSocial!</h3>
+                  <p className="text-muted small">Create your account to discover amazing food places</p>
+                </div>
 
-        {/* Benefits Preview */}
-        <div className="text-center mt-4">
-          <p className="text-white mb-2 small">Join CoffeeFinder and enjoy:</p>
-          <div className="d-flex justify-content-center flex-wrap gap-4">
-            <span className="text-white small">
-              <i className="fas fa-search me-1"></i>
-              Smart Coffee Shop Discovery
-            </span>
-            <span className="text-white small">
-              <i className="fas fa-heart me-1"></i>
-              Personal Favorites Lists
-            </span>
-            <span className="text-white small">
-              <i className="fas fa-star me-1"></i>
-              Review & Rating System
-            </span>
+                {/* Error Message */}
+                {error && (
+                  <div className="alert alert-danger py-2" role="alert">
+                    <small>{error}</small>
+                  </div>
+                )}
+
+                {/* Register Form */}
+                <form onSubmit={handleSubmit}>
+                  {/* Username Field */}
+                  <div className="mb-3">
+                    <label className="form-label fw-semibold small">Username</label>
+                    <div className="input-group">
+                      <span className="input-group-text bg-light border-end-0">
+                        <User size={16} className="text-muted" />
+                      </span>
+                      <input
+                        type="text"
+                        name="username"
+                        className="form-control border-start-0"
+                        placeholder="Choose username"
+                        value={formData.username}
+                        onChange={handleChange}
+                        required
+                        style={{ boxShadow: "none" }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Email Field */}
+                  <div className="mb-3">
+                    <label className="form-label fw-semibold small">Email</label>
+                    <div className="input-group">
+                      <span className="input-group-text bg-light border-end-0">
+                        <Mail size={16} className="text-muted" />
+                      </span>
+                      <input
+                        type="email"
+                        name="email"
+                        className="form-control border-start-0"
+                        placeholder="Enter email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                        style={{ boxShadow: "none" }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Password Field */}
+                  <div className="mb-3">
+                    <label className="form-label fw-semibold small">Password</label>
+                    <div className="input-group">
+                      <span className="input-group-text bg-light border-end-0">
+                        <Lock size={16} className="text-muted" />
+                      </span>
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        name="password"
+                        className="form-control border-start-0 border-end-0"
+                        placeholder="Create password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        required
+                        minLength={6}
+                        style={{ boxShadow: "none" }}
+                      />
+                      <button
+                        type="button"
+                        className="input-group-text bg-light border-start-0"
+                        onClick={() => setShowPassword(!showPassword)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        {showPassword ? (
+                          <EyeOff size={16} className="text-muted" />
+                        ) : (
+                          <Eye size={16} className="text-muted" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Confirm Password Field */}
+                  <div className="mb-3">
+                    <label className="form-label fw-semibold small">Confirm Password</label>
+                    <div className="input-group">
+                      <span className="input-group-text bg-light border-end-0">
+                        <Lock size={16} className="text-muted" />
+                      </span>
+                      <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        name="confirmPassword"
+                        className="form-control border-start-0 border-end-0"
+                        placeholder="Confirm password"
+                        value={formData.confirmPassword}
+                        onChange={handleChange}
+                        required
+                        style={{ boxShadow: "none" }}
+                      />
+                      <button
+                        type="button"
+                        className="input-group-text bg-light border-start-0"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff size={16} className="text-muted" />
+                        ) : (
+                          <Eye size={16} className="text-muted" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Register Button */}
+                  <button
+                    type="submit"
+                    className="btn w-100 text-dark fw-bold py-2 mb-3"
+                    disabled={loading}
+                    style={{ 
+                      backgroundColor: "#FFD700", 
+                      border: "none",
+                      borderRadius: "8px"
+                    }}
+                  >
+                    {loading ? (
+                      <>
+                        <div className="spinner-border spinner-border-sm me-2" role="status">
+                          <span className="visually-hidden">Loading...</span>
+                        </div>
+                        Creating Account...
+                      </>
+                    ) : (
+                      "Create Account"
+                    )}
+                  </button>
+
+                  {/* Login Link */}
+                  <div className="text-center">
+                    <span className="text-muted small">Already have an account? </span>
+                    <Link
+                      to="/login"
+                      className="text-decoration-none fw-semibold small"
+                      style={{ color: "#FFD700" }}
+                    >
+                      Sign In
+                    </Link>
+                  </div>
+                </form>
+              </div>
+            </div>
           </div>
         </div>
       </div>
