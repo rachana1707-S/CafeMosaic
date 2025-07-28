@@ -6,6 +6,7 @@ import { Utensils, Search, Heart, Star, MapPin, User } from "lucide-react";
 export default function Navbar() {
   const { user, logout } = useAuthUser();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -16,9 +17,22 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    // Close dropdown when clicking outside
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.user-dropdown')) {
+        setDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
   const handleLogout = () => {
     logout();
     navigate("/");
+    setDropdownOpen(false);
   };
 
   const underlineHover = {
@@ -29,11 +43,12 @@ export default function Navbar() {
   return (
     <nav
       className={`navbar navbar-expand-lg fixed-top w-100 py-2 ${
-        isScrolled ? "bg-white shadow-lg" : "bg-white"
+        isScrolled ? "shadow-lg" : ""
       }`}
       style={{ 
         zIndex: 1030, 
         transition: "all 0.3s ease",
+        backgroundColor: "#f8f8ff", // Off-white color
         backdropFilter: "blur(10px)"
       }}
     >
@@ -62,7 +77,7 @@ export default function Navbar() {
           className="collapse navbar-collapse"
           id="navbarNav"
           style={{
-            backgroundColor: "#f8f9fa",
+            backgroundColor: "#f0f0f0", // Light off-white
             padding: "0.5rem",
             borderRadius: "0.75rem",
             marginTop: "0.5rem"
@@ -231,64 +246,63 @@ export default function Navbar() {
                 </li>
 
                 {/* Desktop dropdown menu */}
-                <li className="nav-item dropdown d-none d-lg-block">
-                  <button
-                    className="nav-link dropdown-toggle px-3 py-2 btn btn-link d-flex align-items-center"
-                    id="userDropdown"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false"
-                    style={{
-                      ...underlineHover,
-                      textDecoration: "none",
-                      color: "inherit",
-                    }}
-                    onMouseEnter={(e) =>
-                      (e.target.style.borderBottomColor = "#ffc107")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.target.style.borderBottomColor = "transparent")
-                    }
-                  >
-                    <User size={18} className="me-1" />
-                    {user.username}
-                  </button>
-                  <ul
-                    className="dropdown-menu dropdown-menu-end shadow-lg"
-                    aria-labelledby="userDropdown"
-                    style={{ borderRadius: "0.75rem", border: "none" }}
-                  >
-                    <li>
-                      <Link to="/my-collections" className="dropdown-item">
-                        <Utensils size={16} className="me-2" />
-                        My Food Collections
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="/my-reviews" className="dropdown-item">
-                        <Star size={16} className="me-2" />
-                        My Reviews
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="/my-visits" className="dropdown-item">
-                        <MapPin size={16} className="me-2" />
-                        My Food Journey
-                      </Link>
-                    </li>
-                    <li><hr className="dropdown-divider" /></li>
-                    <li>
-                      <Link to="/profile" className="dropdown-item">
-                        <User size={16} className="me-2" />
-                        Profile Settings
-                      </Link>
-                    </li>
-                    <li>
-                      <button onClick={handleLogout} className="dropdown-item text-danger">
-                        <i className="fas fa-sign-out-alt me-2"></i>
-                        Logout
-                      </button>
-                    </li>
-                  </ul>
+                {/* Desktop dropdown menu - Custom Implementation */}
+                <li className="nav-item d-none d-lg-block">
+                  <div className="position-relative user-dropdown">
+                    <button
+                      className="nav-link px-3 py-2 btn btn-link d-flex align-items-center"
+                      onClick={() => setDropdownOpen(!dropdownOpen)}
+                      style={{
+                        textDecoration: "none",
+                        color: "inherit",
+                        border: "none",
+                        background: "none"
+                      }}
+                    >
+                      <User size={18} className="me-1" />
+                      {user.username}
+                      <span className="ms-1">▼</span>
+                    </button>
+                    
+                    {dropdownOpen && (
+                      <div
+                        className="position-absolute bg-white shadow-lg rounded"
+                        style={{
+                          top: '100%',
+                          right: '0',
+                          minWidth: '200px',
+                          zIndex: 1000,
+                          border: '1px solid #e0e0e0',
+                          borderRadius: '8px'
+                        }}
+                      >
+                        <Link 
+                          to="/profile" 
+                          className="dropdown-item d-flex align-items-center px-3 py-2 text-decoration-none"
+                          onClick={() => setDropdownOpen(false)}
+                          style={{ color: '#333' }}
+                          onMouseEnter={(e) => e.target.style.backgroundColor = '#f8f9fa'}
+                          onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                        >
+                          <User size={16} className="me-2" />
+                          Profile Settings
+                        </Link>
+                        
+                        <hr className="dropdown-divider my-1" />
+                        
+                        <button 
+                          onClick={handleLogout} 
+                          className="dropdown-item d-flex align-items-center px-3 py-2 text-danger w-100 border-0 bg-transparent"
+                          style={{ textAlign: 'left' }}
+                          onMouseEnter={(e) => e.target.style.backgroundColor = '#f8f9fa'}
+                          onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                        >
+                          <i className="fas fa-sign-out-alt me-2"></i>
+                          Logout
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </li>
               </>
             )}
