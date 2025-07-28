@@ -1,4 +1,67 @@
-import React, { useEffect, useState } from "react";
+/* eslint-disable no-undef */
+
+// Helper functions for generating fallback data
+  const generatePhoneNumber = () => {
+    return `+1-617-555-${Math.floor(Math.random() * 9000) + 1000}`;
+  };
+
+  const generateWebsite = (name) => {
+    if (!name) return null;
+    const cleanName = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+    return `https://${cleanName}.com`;
+  };  // Fallback function for generating mock data when no cached data exists
+  const generateMockFoodPlace = (id) => {
+    // Try to extract meaningful info from the ID if it looks like an address or name
+    let name = "Local Restaurant";
+    let address = "Address not available";
+    let category = "restaurant";
+    
+    if (id.includes("boylston")) {
+      name = "Boylston Street Bistro";
+      address = "1165 Boylston St, Boston, MA 02215";
+      category = "restaurant";
+    } else if (id.includes("newbury")) {
+      name = "Newbury Street Cafe";
+      address = id.replace(/_/g, ' ');
+      category = "cafe";
+    } else if (id.includes("cambridge")) {
+      name = "Cambridge Corner";
+      address = id.replace(/_/g, ' ');
+      category = "restaurant";
+    } else if (id.includes("bar") || id.includes("pub")) {
+      name = id.replace(/_/g, ' ').split(' ').map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1)
+      ).join(' ');
+      address = `${Math.floor(Math.random() * 999) + 100} Main St, Boston, MA`;
+      category = id.includes("bar") ? "bar" : "pub";
+    } else {
+      // Generate name from ID
+      name = id.replace(/_/g, ' ').split(' ').map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1)
+      ).join(' ');
+      address = `${Math.floor(Math.random() * 999) + 100} ${name.split(' ')[0]} St, Boston, MA`;
+    }
+
+    return {
+      id: id,
+      placeId: id,
+      name: name,
+      address: address,
+      phone: `+1-617-555-${Math.floor(Math.random() * 9000) + 1000}`,
+      website: `https://${name.toLowerCase().replace(/\s+/g, '')}.com`,
+      rating: (Math.random() * 1.5 + 3.5).toFixed(1),
+      priceLevel: Math.floor(Math.random() * 4) + 1,
+      category: category,
+      cuisine: "International",
+      description: generateDescription(name, category),
+      imageUrl: getImageForCategory(category),
+      latitude: 42.3601 + (Math.random() - 0.5) * 0.02,
+      longitude: -71.0589 + (Math.random() - 0.5) * 0.02,
+      openingHours: generateOpeningHours(category),
+      amenities: generateAmenities(category),
+      distance: (Math.random() * 3 + 0.1).toFixed(1)
+    };
+  };import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuthUser } from "../context/AuthContext";
 import { 
@@ -39,121 +102,337 @@ export default function FoodPlaceDetails() {
   // Category-specific placeholder images for different food types
   const foodImages = {
     restaurant: [
-      'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop&auto=format&q=80', // Fine dining restaurant
-      'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=600&h=400&fit=crop&auto=format&q=80', // Restaurant interior
-      'https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=600&h=400&fit=crop&auto=format&q=80', // Elegant restaurant
-      'https://images.unsplash.com/photo-1590846406792-0adc7f938f1d?w=600&h=400&fit=crop&auto=format&q=80'  // Modern restaurant
+      'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=600&h=400&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=600&h=400&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1590846406792-0adc7f938f1d?w=600&h=400&fit=crop&auto=format&q=80'
     ],
     cafe: [
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=400&fit=crop&auto=format&q=80', // Coffee shop interior
-      'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&h=400&fit=crop&auto=format&q=80', // Cozy cafe
-      'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=600&h=400&fit=crop&auto=format&q=80', // Cafe exterior
-      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop&auto=format&q=80'  // Modern cafe
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=400&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&h=400&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=600&h=400&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop&auto=format&q=80'
     ],
     bar: [
-      'https://images.unsplash.com/photo-1566737236500-c8ac43014a8e?w=600&h=400&fit=crop&auto=format&q=80', // Bar interior
-      'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=600&h=400&fit=crop&auto=format&q=80', // Cocktail bar
-      'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=600&h=400&fit=crop&auto=format&q=80', // Sports bar
-      'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=600&h=400&fit=crop&auto=format&q=80'  // Pub atmosphere
+      'https://images.unsplash.com/photo-1566737236500-c8ac43014a8e?w=600&h=400&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=600&h=400&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=600&h=400&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=600&h=400&fit=crop&auto=format&q=80'
     ],
     pub: [
-      'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=600&h=400&fit=crop&auto=format&q=80', // Traditional pub
-      'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=600&h=400&fit=crop&auto=format&q=80', // Beer pub
-      'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=600&h=400&fit=crop&auto=format&q=80', // Cozy pub
-      'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=600&h=400&fit=crop&auto=format&q=80'  // British pub
+      'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=600&h=400&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=600&h=400&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=600&h=400&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=600&h=400&fit=crop&auto=format&q=80'
     ],
     fast_food: [
-      'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=600&h=400&fit=crop&auto=format&q=80', // Burger place
-      'https://images.unsplash.com/photo-1513639776629-7b61b0ac49cb?w=600&h=400&fit=crop&auto=format&q=80', // Fast food counter
-      'https://images.unsplash.com/photo-1586816001966-79b736744398?w=600&h=400&fit=crop&auto=format&q=80', // Modern fast food
-      'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=600&h=400&fit=crop&auto=format&q=80'  // Quick service
+      'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=600&h=400&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1513639776629-7b61b0ac49cb?w=600&h=400&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1586816001966-79b736744398?w=600&h=400&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=600&h=400&fit=crop&auto=format&q=80'
     ],
     food_court: [
-      'https://images.unsplash.com/photo-1567521464027-f32a2d9b9e89?w=600&h=400&fit=crop&auto=format&q=80', // Food court
-      'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&h=400&fit=crop&auto=format&q=80', // Mall food court
-      'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=600&h=400&fit=crop&auto=format&q=80', // Food hall
-      'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&h=400&fit=crop&auto=format&q=80'  // Market food court
+      'https://images.unsplash.com/photo-1567521464027-f32a2d9b9e89?w=600&h=400&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&h=400&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=600&h=400&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&h=400&fit=crop&auto=format&q=80'
     ],
     ice_cream: [
-      'https://images.unsplash.com/photo-1488900128323-21503983a07e?w=600&h=400&fit=crop&auto=format&q=80', // Ice cream shop
-      'https://images.unsplash.com/photo-1563227812-0ea4c22e6cc8?w=600&h=400&fit=crop&auto=format&q=80', // Gelato shop
-      'https://images.unsplash.com/photo-1579952363873-27d3bfad9c0d?w=600&h=400&fit=crop&auto=format&q=80', // Ice cream parlor
-      'https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=600&h=400&fit=crop&auto=format&q=80'  // Dessert shop
+      'https://images.unsplash.com/photo-1488900128323-21503983a07e?w=600&h=400&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1563227812-0ea4c22e6cc8?w=600&h=400&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1579952363873-27d3bfad9c0d?w=600&h=400&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=600&h=400&fit=crop&auto=format&q=80'
     ],
     biergarten: [
-      'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=600&h=400&fit=crop&auto=format&q=80', // Beer garden
-      'https://images.unsplash.com/photo-1436076863939-06870fe779c2?w=600&h=400&fit=crop&auto=format&q=80', // Outdoor beer garden
-      'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=600&h=400&fit=crop&auto=format&q=80', // Beer hall
-      'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=600&h=400&fit=crop&auto=format&q=80'  // German beer garden
+      'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=600&h=400&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1436076863939-06870fe779c2?w=600&h=400&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=600&h=400&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=600&h=400&fit=crop&auto=format&q=80'
     ],
     taproom: [
-      'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=600&h=400&fit=crop&auto=format&q=80', // Brewery taproom
-      'https://images.unsplash.com/photo-1436076863939-06870fe779c2?w=600&h=400&fit=crop&auto=format&q=80', // Craft beer taproom
-      'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=600&h=400&fit=crop&auto=format&q=80', // Beer tasting room
-      'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=600&h=400&fit=crop&auto=format&q=80'  // Industrial taproom
+      'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=600&h=400&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1436076863939-06870fe779c2?w=600&h=400&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=600&h=400&fit=crop&auto=format&q=80',
+      'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=600&h=400&fit=crop&auto=format&q=80'
     ]
   };
 
-  const getRandomFoodImage = () => foodImages['restaurant'][Math.floor(Math.random() * foodImages['restaurant'].length)];
+  
 
   const getImageForCategory = (category) => {
-    // Extract the category type from the full category string (e.g., "catering.restaurant" -> "restaurant")
     const categoryType = category ? category.replace('catering.', '') : 'restaurant';
-    
-    // Get images for this category, fallback to restaurant if not found
     const categoryImages = foodImages[categoryType] || foodImages.restaurant;
-    
-    // Return a random image from this category
     return categoryImages[Math.floor(Math.random() * categoryImages.length)];
+  };
+
+  // Generate description based on name and category
+  const generateDescription = (name, category) => {
+    const descriptions = {
+      restaurant: `${name} offers an exceptional dining experience with carefully crafted dishes and warm hospitality. Perfect for both casual meals and special occasions.`,
+      cafe: `${name} is a welcoming neighborhood cafe serving artisanal coffee, fresh pastries, and light meals in a cozy atmosphere.`,
+      bar: `${name} is the perfect spot to unwind with craft cocktails, local beers, and a vibrant atmosphere that brings people together.`,
+      pub: `${name} offers a traditional pub experience with hearty comfort food, premium beverages, and a warm, friendly environment.`,
+      fast_food: `${name} provides quick, fresh, and delicious meals prepared with quality ingredients for people on the go.`,
+      food_court: `${name} features a variety of food options under one roof, perfect for groups with different tastes and preferences.`
+    };
+    
+    return descriptions[category] || descriptions.restaurant;
+  };
+
+  // Generate opening hours based on category
+  const generateOpeningHours = (category) => {
+    const hours = {
+      cafe: {
+        monday: "07:00 - 20:00",
+        tuesday: "07:00 - 20:00",
+        wednesday: "07:00 - 20:00", 
+        thursday: "07:00 - 20:00",
+        friday: "07:00 - 21:00",
+        saturday: "08:00 - 21:00",
+        sunday: "08:00 - 19:00"
+      },
+      bar: {
+        monday: "16:00 - 01:00",
+        tuesday: "16:00 - 01:00",
+        wednesday: "16:00 - 01:00",
+        thursday: "16:00 - 02:00", 
+        friday: "16:00 - 02:00",
+        saturday: "14:00 - 02:00",
+        sunday: "14:00 - 24:00"
+      },
+      pub: {
+        monday: "16:00 - 01:00",
+        tuesday: "16:00 - 01:00",
+        wednesday: "16:00 - 01:00",
+        thursday: "16:00 - 02:00", 
+        friday: "16:00 - 02:00",
+        saturday: "14:00 - 02:00",
+        sunday: "14:00 - 24:00"
+      },
+      fast_food: {
+        monday: "10:00 - 23:00",
+        tuesday: "10:00 - 23:00",
+        wednesday: "10:00 - 23:00",
+        thursday: "10:00 - 23:00",
+        friday: "10:00 - 24:00", 
+        saturday: "10:00 - 24:00",
+        sunday: "11:00 - 22:00"
+      },
+      restaurant: {
+        monday: "11:00 - 22:00",
+        tuesday: "11:00 - 22:00",
+        wednesday: "11:00 - 22:00",
+        thursday: "11:00 - 22:00",
+        friday: "11:00 - 23:00",
+        saturday: "10:00 - 23:00", 
+        sunday: "10:00 - 21:00"
+      }
+    };
+    
+    return hours[category] || hours.restaurant;
+  };
+
+  // Generate amenities based on category
+  const generateAmenities = (category) => {
+    const amenities = {
+      cafe: {
+        wifi: true,
+        creditCards: true,
+        parking: false,
+        outdoorSeating: true,
+        wheelchair: true,
+        delivery: false,
+        takeout: true
+      },
+      bar: {
+        wifi: true,
+        creditCards: true,
+        parking: true,
+        outdoorSeating: true,
+        wheelchair: true,
+        delivery: false,
+        takeout: false
+      },
+      pub: {
+        wifi: true,
+        creditCards: true,
+        parking: true,
+        outdoorSeating: true,
+        wheelchair: true,
+        delivery: false,
+        takeout: false
+      },
+      fast_food: {
+        wifi: true,
+        creditCards: true,
+        parking: true,
+        outdoorSeating: false,
+        wheelchair: true,
+        delivery: true,
+        takeout: true
+      },
+      restaurant: {
+        wifi: true,
+        creditCards: true,
+        parking: true,
+        outdoorSeating: true,
+        wheelchair: true,
+        delivery: true,
+        takeout: true
+      }
+    };
+    
+    return amenities[category] || amenities.restaurant;
+  };
+
+  // Check if current food place is in favorites
+  const checkIfFavorite = (place) => {
+    if (!place) return false;
+    
+    const favorites = JSON.parse(localStorage.getItem('foodPlaceFavorites') || '[]');
+    return favorites.some(fav => 
+      (fav.id && fav.id === place.id) || 
+      (fav.placeId && fav.placeId === place.placeId) ||
+      (place.placeId && fav.placeId === place.placeId)
+    );
   };
 
   useEffect(() => {
     fetchFoodPlaceDetails();
   }, [foodPlaceId]);
 
+  useEffect(() => {
+    // Update favorite status when food place data changes
+    if (foodPlace) {
+      setIsFavorite(checkIfFavorite(foodPlace));
+    }
+  }, [foodPlace]);
+
   const fetchFoodPlaceDetails = async () => {
     try {
       setLoading(true);
       
-      // Simulate API call - replace with your actual API
-      // For now, we'll create mock data based on the foodPlaceId
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate loading
+      console.log("🔍 Looking for place with ID:", foodPlaceId);
       
-      const mockFoodPlace = {
-        id: foodPlaceId,
-        placeId: foodPlaceId,
-        name: "Delicious Bistro",
-        address: "123 Food Street, Culinary District, Boston, MA 02110",
-        phone: "+1-617-555-0123",
-        website: "https://deliciousbistro.com",
-        rating: 4.5,
-        priceLevel: 2,
-        category: "restaurant",
-        cuisine: "Italian, Mediterranean",
-        description: "A cozy bistro serving authentic Italian cuisine with a modern twist. Perfect for romantic dinners and family gatherings.",
-        imageUrl: getImageForCategory("restaurant"),
-        latitude: 42.3601,
-        longitude: -71.0589,
-        openingHours: {
-          monday: "11:00 - 22:00",
-          tuesday: "11:00 - 22:00", 
-          wednesday: "11:00 - 22:00",
-          thursday: "11:00 - 22:00",
-          friday: "11:00 - 23:00",
-          saturday: "10:00 - 23:00",
-          sunday: "10:00 - 21:00"
-        },
-        amenities: {
-          wifi: true,
-          parking: true,
-          creditCards: true,
-          outdoorSeating: true,
-          wheelchair: true,
-          delivery: true,
-          takeout: true
-        },
-        distance: "0.5"
-      };
+      // First, try to get data from localStorage (if navigated from search/favorites)
+      const cachedPlaces = JSON.parse(localStorage.getItem('searchResults') || '[]');
+      const cachedFavorites = JSON.parse(localStorage.getItem('foodPlaceFavorites') || '[]');
+      
+      console.log("📦 Cached search results:", cachedPlaces.length, "items");
+      console.log("❤️ Cached favorites:", cachedFavorites.length, "items");
+      
+      // Look for the place in cached search results or favorites
+      let foundPlace = cachedPlaces.find(place => {
+        const matches = place.id === foodPlaceId || 
+                       place.placeId === foodPlaceId ||
+                       place.place_id === foodPlaceId ||
+                       String(place.id) === String(foodPlaceId) ||
+                       String(place.placeId) === String(foodPlaceId) ||
+                       String(place.place_id) === String(foodPlaceId);
+        
+        if (matches) {
+          console.log("✅ Found matching place in search results:", place.name);
+        }
+        return matches;
+      });
+      
+      if (!foundPlace) {
+        foundPlace = cachedFavorites.find(place => {
+          const matches = place.id === foodPlaceId || 
+                         place.placeId === foodPlaceId ||
+                         place.place_id === foodPlaceId ||
+                         String(place.id) === String(foodPlaceId) ||
+                         String(place.placeId) === String(foodPlaceId) ||
+                         String(place.place_id) === String(foodPlaceId);
+          
+          if (matches) {
+            console.log("✅ Found matching place in favorites:", place.name);
+          }
+          return matches;
+        });
+      }
+      
+      let mockFoodPlace;
+      
+      if (foundPlace) {
+        console.log("🎯 Using found place data:", foundPlace);
+        
+        // Use the actual place data from search results or favorites
+        mockFoodPlace = {
+          id: foundPlace.id || foundPlace.placeId || foundPlace.place_id || foodPlaceId,
+          placeId: foundPlace.placeId || foundPlace.id || foundPlace.place_id || foodPlaceId,
+          name: foundPlace.name || "Restaurant",
+          address: foundPlace.address || foundPlace.vicinity || foundPlace.formatted_address || "Address not available",
+          phone: foundPlace.phone || foundPlace.formatted_phone_number || generatePhoneNumber(),
+          website: foundPlace.website || foundPlace.url || generateWebsite(foundPlace.name),
+          rating: foundPlace.rating || (Math.random() * 1.5 + 3.5).toFixed(1),
+          priceLevel: foundPlace.priceLevel || foundPlace.price_level || Math.floor(Math.random() * 4) + 1,
+          category: foundPlace.category || (foundPlace.types && foundPlace.types[0]) || "restaurant",
+          cuisine: foundPlace.cuisine || (foundPlace.types && foundPlace.types.slice(0,2).join(", ")) || "International",
+          description: foundPlace.description || generateDescription(foundPlace.name || "Restaurant", foundPlace.category || "restaurant"),
+          imageUrl: foundPlace.imageUrl || (foundPlace.photos && foundPlace.photos[0]) || getImageForCategory(foundPlace.category || "restaurant"),
+          latitude: foundPlace.latitude || (foundPlace.geometry && foundPlace.geometry.location && foundPlace.geometry.location.lat) || 42.3601,
+          longitude: foundPlace.longitude || (foundPlace.geometry && foundPlace.geometry.location && foundPlace.geometry.location.lng) || -71.0589,
+          distance: foundPlace.distance || (Math.random() * 3 + 0.1).toFixed(1),
+          openingHours: foundPlace.openingHours || (foundPlace.opening_hours && foundPlace.opening_hours.weekday_text) || generateOpeningHours(foundPlace.category || "restaurant"),
+          amenities: foundPlace.amenities || generateAmenities(foundPlace.category || "restaurant"),
+          reviews: foundPlace.reviews || [],
+          // Preserve additional data
+          types: foundPlace.types,
+          geometry: foundPlace.geometry,
+          photos: foundPlace.photos,
+          place_id: foundPlace.place_id,
+          formatted_address: foundPlace.formatted_address,
+          vicinity: foundPlace.vicinity,
+          searchedAt: foundPlace.searchedAt,
+          dateAdded: foundPlace.dateAdded
+        };
+        
+        console.log("✅ Created food place object:", mockFoodPlace.name, mockFoodPlace.address);
+        
+      } else {
+        console.log("⚠️ No cached data found, trying API or generating fallback data");
+        
+        // Try to fetch from a real API if available
+        try {
+          // TODO: Replace with your actual API call
+          const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+          const response = await fetch(`${apiUrl}/api/places/${foodPlaceId}`, {
+            credentials: 'include'
+          });
+          
+          if (response.ok) {
+            const placeData = await response.json();
+            console.log("🌐 Got data from API:", placeData);
+            
+            mockFoodPlace = {
+              id: placeData.id || foodPlaceId,
+              placeId: placeData.placeId || placeData.id || foodPlaceId,
+              name: placeData.name || "Restaurant",
+              address: placeData.address || placeData.formatted_address || "Address not available",
+              phone: placeData.phone || placeData.formatted_phone_number || generatePhoneNumber(),
+              website: placeData.website || placeData.url || generateWebsite(placeData.name),
+              rating: placeData.rating || (Math.random() * 1.5 + 3.5).toFixed(1),
+              priceLevel: placeData.priceLevel || placeData.price_level || Math.floor(Math.random() * 4) + 1,
+              category: placeData.category || (placeData.types && placeData.types[0]) || "restaurant",
+              cuisine: placeData.cuisine || "International",
+              description: placeData.description || generateDescription(placeData.name, placeData.category || "restaurant"),
+              imageUrl: placeData.imageUrl || (placeData.photos && placeData.photos[0]) || getImageForCategory(placeData.category || "restaurant"),
+              latitude: placeData.latitude || (placeData.geometry && placeData.geometry.location && placeData.geometry.location.lat) || 42.3601,
+              longitude: placeData.longitude || (placeData.geometry && placeData.geometry.location && placeData.geometry.location.lng) || -71.0589,
+              distance: placeData.distance || (Math.random() * 3 + 0.1).toFixed(1),
+              openingHours: placeData.openingHours || generateOpeningHours(placeData.category || "restaurant"),
+              amenities: placeData.amenities || generateAmenities(placeData.category || "restaurant"),
+              reviews: placeData.reviews || []
+            };
+          } else {
+            throw new Error(`API returned ${response.status}`);
+          }
+        } catch (apiError) {
+          console.log("❌ API call failed:", apiError.message, "- using intelligent fallback");
+          mockFoodPlace = generateMockFoodPlace(foodPlaceId);
+        }
+      }
 
       setFoodPlace(mockFoodPlace);
       
@@ -172,40 +451,72 @@ export default function FoodPlaceDetails() {
 
   const fetchSimilarPlaces = async (currentPlace) => {
     try {
-      // Simulate finding similar places
-      const mockSimilarPlaces = [
-        {
-          id: "similar1",
-          name: "Pasta Paradise",
-          address: "456 Taste Ave, Boston, MA",
-          rating: 4.3,
-          distance: "0.8",
-          category: "restaurant",
-          imageUrl: getImageForCategory("restaurant"),
-          priceLevel: 2
-        },
-        {
-          id: "similar2", 
-          name: "Mediterranean Magic",
-          address: "789 Flavor St, Boston, MA",
-          rating: 4.6,
-          distance: "1.2",
-          category: "restaurant",
-          imageUrl: getImageForCategory("restaurant"),
-          priceLevel: 3
-        },
-        {
-          id: "similar3",
-          name: "Cozy Corner Cafe",
-          address: "321 Brew Blvd, Boston, MA", 
-          rating: 4.4,
-          distance: "1.5",
-          category: "cafe",
-          imageUrl: getImageForCategory("cafe"),
-          priceLevel: 1
-        }
-      ];
-      
+      // Generate different similar places based on current place category
+      const generateSimilarPlaces = (category, currentId) => {
+        const allPlaces = [
+          {
+            id: "italian_corner",
+            name: "Italian Corner",
+            address: "234 Little Italy St, Boston, MA",
+            rating: 4.7,
+            category: "restaurant",
+            priceLevel: 3
+          },
+          {
+            id: "brew_masters",
+            name: "Brew Masters Pub",
+            address: "567 Hops Street, Boston, MA",
+            rating: 4.4,
+            category: "pub", 
+            priceLevel: 2
+          },
+          {
+            id: "morning_glory_cafe",
+            name: "Morning Glory Cafe",
+            address: "890 Dawn Avenue, Boston, MA",
+            rating: 4.6,
+            category: "cafe",
+            priceLevel: 1
+          },
+          {
+            id: "speedy_eats",
+            name: "Speedy Eats",
+            address: "111 Fast Lane, Boston, MA",
+            rating: 3.9,
+            category: "fast_food",
+            priceLevel: 1
+          },
+          {
+            id: "cocktail_lounge",
+            name: "The Cocktail Lounge",
+            address: "444 Mix Street, Boston, MA",
+            rating: 4.3,
+            category: "bar",
+            priceLevel: 3
+          },
+          {
+            id: "fusion_kitchen",
+            name: "Fusion Kitchen",
+            address: "777 Blend Blvd, Boston, MA",
+            rating: 4.5,
+            category: "restaurant",
+            priceLevel: 2
+          }
+        ];
+
+        // Filter out current place and return 3 similar ones
+        return allPlaces
+          .filter(place => place.id !== currentId)
+          .sort(() => 0.5 - Math.random()) // Shuffle
+          .slice(0, 3)
+          .map(place => ({
+            ...place,
+            distance: (Math.random() * 2 + 0.5).toFixed(1),
+            imageUrl: getImageForCategory(place.category)
+          }));
+      };
+
+      const mockSimilarPlaces = generateSimilarPlaces(currentPlace.category, currentPlace.id);
       setSimilarPlaces(mockSimilarPlaces);
     } catch (error) {
       console.error("Error fetching similar places:", error);
@@ -214,7 +525,6 @@ export default function FoodPlaceDetails() {
 
   const fetchReviews = async () => {
     try {
-      // Mock reviews
       const mockReviews = [
         {
           id: 1,
@@ -246,10 +556,77 @@ export default function FoodPlaceDetails() {
       navigate("/login");
       return;
     }
+
+    if (!foodPlace) return;
     
-    // Simulate API call
-    setIsFavorite(!isFavorite);
-    alert(isFavorite ? "Removed from favorites" : "Added to favorites");
+    try {
+      // Get current favorites from localStorage
+      const currentFavorites = JSON.parse(localStorage.getItem('foodPlaceFavorites') || '[]');
+      
+      // Check if already in favorites
+      const existingIndex = currentFavorites.findIndex(fav => 
+        (fav.id && fav.id === foodPlace.id) || 
+        (fav.placeId && fav.placeId === foodPlace.placeId) ||
+        (foodPlace.placeId && fav.placeId === foodPlace.placeId)
+      );
+      
+      let updatedFavorites;
+      let action;
+      
+      if (existingIndex > -1) {
+        // Remove from favorites
+        updatedFavorites = currentFavorites.filter((_, index) => index !== existingIndex);
+        action = "removed";
+        setIsFavorite(false);
+      } else {
+        // Add to favorites
+        const favoriteItem = {
+          id: foodPlace.id,
+          placeId: foodPlace.placeId,
+          name: foodPlace.name,
+          address: foodPlace.address,
+          phone: foodPlace.phone,
+          website: foodPlace.website,
+          rating: foodPlace.rating,
+          priceLevel: foodPlace.priceLevel,
+          category: foodPlace.category,
+          cuisine: foodPlace.cuisine,
+          description: foodPlace.description,
+          imageUrl: foodPlace.imageUrl,
+          latitude: foodPlace.latitude,
+          longitude: foodPlace.longitude,
+          distance: foodPlace.distance,
+          dateAdded: new Date().toISOString(),
+          amenities: foodPlace.amenities,
+          openingHours: foodPlace.openingHours
+        };
+        
+        updatedFavorites = [favoriteItem, ...currentFavorites];
+        action = "added";
+        setIsFavorite(true);
+      }
+      
+      // Update localStorage
+      localStorage.setItem('foodPlaceFavorites', JSON.stringify(updatedFavorites));
+      
+      // Show success message
+      alert(`${foodPlace.name} ${action === "added" ? "added to" : "removed from"} favorites!`);
+      
+      // TODO: Replace with actual API call when backend is ready
+      // const response = await fetch('/api/favorites', {
+      //   method: action === "added" ? 'POST' : 'DELETE',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   credentials: 'include',
+      //   body: JSON.stringify({ foodPlaceId: foodPlace.id })
+      // });
+      
+    } catch (error) {
+      console.error("Error updating favorites:", error);
+      alert("Error updating favorites. Please try again.");
+      
+      // Revert the state change on error
+      setIsFavorite(!isFavorite);
+    }
   };
 
   const handleShare = async () => {
@@ -304,7 +681,6 @@ export default function FoodPlaceDetails() {
         const submittedReview = await response.json();
         console.log("Review submitted successfully to API:", submittedReview);
         
-        // Add the new review to the local list with user info
         const reviewWithUser = {
           ...submittedReview,
           user: { username: user.username, id: user.id }
@@ -441,16 +817,22 @@ export default function FoodPlaceDetails() {
             <div className="position-absolute top-0 end-0 m-4">
               <div className="d-flex gap-2">
                 <button
-                  className="btn rounded-circle text-dark"
+                  className={`btn rounded-circle ${isFavorite ? 'text-white' : 'text-dark'}`}
                   onClick={handleAddToFavorites}
                   style={{ 
-                    backgroundColor: "#FFD700",
+                    backgroundColor: isFavorite ? "#dc3545" : "#FFD700",
                     border: "none",
                     width: '50px',
-                    height: '50px'
+                    height: '50px',
+                    transition: 'all 0.3s ease'
                   }}
+                  title={isFavorite ? "Remove from favorites" : "Add to favorites"}
                 >
-                  <Heart size={20} fill={isFavorite ? "currentColor" : "none"} />
+                  <Heart 
+                    size={20} 
+                    fill={isFavorite ? "currentColor" : "none"}
+                    className={isFavorite ? "text-white" : ""}
+                  />
                 </button>
                 <button
                   className="btn rounded-circle text-dark"
@@ -632,6 +1014,19 @@ export default function FoodPlaceDetails() {
                         >
                           <Star size={16} className="me-2" />
                           Write Review
+                        </button>
+
+                        <button 
+                          className={`btn fw-bold ${isFavorite ? 'text-white' : 'text-dark'}`}
+                          onClick={handleAddToFavorites}
+                          style={{ 
+                            backgroundColor: isFavorite ? "#dc3545" : "#FFD700", 
+                            border: "none",
+                            transition: 'all 0.3s ease'
+                          }}
+                        >
+                          <Heart size={16} className="me-2" fill={isFavorite ? "currentColor" : "none"} />
+                          {isFavorite ? "Remove from Favorites" : "Add to Favorites"}
                         </button>
                       </div>
 
@@ -844,3 +1239,4 @@ export default function FoodPlaceDetails() {
     </div>
   );
 }
+

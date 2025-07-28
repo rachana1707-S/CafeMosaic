@@ -1,8 +1,9 @@
+// eslint-disable-next-line no-unused-vars
 import { useState } from 'react'
 import { Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import SearchResults from './pages/SearchResults';
-import ViewCollection from './pages/ViewCollection';
+import CollectionDetails from './pages/CollectionDetails';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Navbar from './components/Navbar';
@@ -13,13 +14,13 @@ import ViewReview from './pages/ViewReview';
 import AddReview from './pages/AddReview';
 import SearchFoodPlaces from './pages/SearchFoodPlaces';
 import FoodMap from './pages/FoodMap';
-import MyVisits from './pages/MyVisits';
 import Profile from './pages/Profile';
 import MyFavorites from './pages/MyFavorites';
 import MyReviews from './pages/MyReviews';
 import ReviewDetails from './pages/ReviewDetails';
 import BrowseReviews from './pages/BrowseReviews';
 import ProtectedRoute from './components/ProtectedRoute';
+import MyCollections from './pages/MyCollections';
 
 export default function App() {
   return (
@@ -38,8 +39,8 @@ export default function App() {
 
         {/* User Collections & Favorites */}
         <Route path="/my-favorites" element={<ProtectedRoute><MyFavorites /></ProtectedRoute>} />
-        <Route path="/my-collections" element={<ProtectedRoute><MyFavorites /></ProtectedRoute>} />
-        <Route path="/collections/:id" element={<ProtectedRoute><ViewCollection /></ProtectedRoute>} />
+        <Route path="/my-collections" element={<ProtectedRoute><MyCollections /></ProtectedRoute>} />
+        <Route path="/collections/:collectionId" element={<ProtectedRoute><CollectionDetails /></ProtectedRoute>} />
         <Route path="/collections/:id/edit" element={<ProtectedRoute><EditReview /></ProtectedRoute>} />
         <Route path="/collections/:id/add-places" element={<ProtectedRoute><SearchFoodPlaces /></ProtectedRoute>} />
 
@@ -59,12 +60,7 @@ export default function App() {
 
         {/* User Profile & Activity */}
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-        <Route path="/my-visits" element={<ProtectedRoute><MyVisits /></ProtectedRoute>} />
-        <Route path="/my-food-journey" element={<ProtectedRoute><MyVisits /></ProtectedRoute>} />
         
-        {/* Visit stats for food places */}
-        <Route path="/food-places/:foodPlaceId/visits" element={<MyVisits />} />
-
         {/* Authentication */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

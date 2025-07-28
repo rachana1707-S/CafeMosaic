@@ -11,7 +11,6 @@ import coffeeShopRoutes from './src/routes/coffeeShopRoutes.js';
 import collectionRoutes from './src/routes/collectionRoutes.js';
 import reviewRoutes from './src/routes/reviewRoutes.js';
 import favoriteRoutes from './src/routes/favoriteRoutes.js';
-import visitRoutes from './src/routes/visitRoutes.js';
 import categoryRoutes from './src/routes/categoryRoutes.js';
 
 // Import middleware
@@ -137,7 +136,7 @@ app.use('/api/coffee-shops', coffeeShopRoutes); // Coffee shop CRUD
 app.use('/api/collections', collectionRoutes); // User collections
 app.use('/api/reviews', reviewRoutes); // Reviews and ratings
 app.use('/api/favorites', favoriteRoutes); // User favorites
-app.use('/api/visits', visitRoutes); // Visit tracking
+
 app.use('/api/categories', categoryRoutes); // Coffee shop categories
 
 // ✅ 404 handler for undefined routes

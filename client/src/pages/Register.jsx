@@ -2,10 +2,9 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthUser } from "../context/AuthContext";
 import { User, Mail, Lock, Eye, EyeOff, UserPlus, ArrowRight, ArrowLeft } from "lucide-react";
-import backgroundImage from "../assets/food_backgroundd.avif"; // Your food background
+import backgroundImage from "../assets/food_background.avif"; // Your food background
 
 export default function Register() {
-  const navigate = useNavigate();
   const navigate = useNavigate();
   const { register } = useAuthUser();
   
@@ -15,12 +14,10 @@ export default function Register() {
     email: "",
     password: "",
     confirmPassword: ""
-    confirmPassword: ""
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [error, setError] = useState("");
 
   const handleChange = (e) => {
@@ -40,7 +37,6 @@ export default function Register() {
     setCurrentStep(1);
   };
 
-  const handleSubmit = async (e) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -80,10 +76,6 @@ export default function Register() {
       }
     } catch (error) {
       setError("An error occurred. Please try again.");
-        setError(result.error || "Registration failed");
-      }
-    } catch (error) {
-      setError("An error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -92,19 +84,7 @@ export default function Register() {
   return (
     <div 
       className="d-flex align-items-center"
-    <div 
-      className="d-flex align-items-center"
       style={{
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundSize: "contain",
-        backgroundPosition: "left center",
-        backgroundRepeat: "no-repeat",
-        backgroundColor: "#f8f9fa",
-        height: "100vh",
-        paddingTop: "80px", // Space for navbar
-        paddingBottom: "20px", // Space for footer
-        overflow: "hidden", // Prevent scrolling
-        boxSizing: "border-box"
         backgroundImage: `url(${backgroundImage})`,
         backgroundSize: "contain",
         backgroundPosition: "left center",

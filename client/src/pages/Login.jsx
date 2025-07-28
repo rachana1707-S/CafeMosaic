@@ -2,11 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthUser } from "../context/AuthContext";
 import { User, Lock, Eye, EyeOff, Utensils } from "lucide-react";
-<<<<<<< HEAD
-import backgroundImage from "../assets/food_backgroundd.avif"; // Your food background
-=======
-import backgroundImage from "../assets/food_background.avif"; // Your food background
->>>>>>> 38b3d4ebdcda7a99ec1db390f3f9676b25affcb3
+import backgroundImage from "../assets/food_background.jpg"; // Your food background
 
 export default function Login() {
   const navigate = useNavigate();

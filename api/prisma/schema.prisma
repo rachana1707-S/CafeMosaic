@@ -153,15 +153,36 @@ model UserCollection {
   updatedAt   DateTime               @updatedAt
 }
 
+// Updated schema.prisma - Add these fields to CollectionCoffeeShop model
+
 model CollectionCoffeeShop {
   id           Int            @id @default(autoincrement())
   collectionId Int
   coffeeShopId Int
   notes        String?
   order        Int            @default(0)
+  isVisited    Boolean        @default(false)  // NEW: Track if user has visited
+  visitedDate  DateTime?                       // NEW: When they visited
+  personalRating Int?                          // NEW: Personal rating (1-5)
+  tags         Json?                           // NEW: Personal tags
   collection   UserCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
   coffeeShop   CoffeeShop     @relation(fields: [coffeeShopId], references: [id], onDelete: Cascade)
   createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt       // NEW: Track updates
 
   @@unique([collectionId, coffeeShopId])
 }
+
+// Migration SQL to add the new fields (run this with: npx prisma db push or create a migration)
+/*
+-- Add new columns to collection_coffee_shop table
+ALTER TABLE "CollectionCoffeeShop" 
+ADD COLUMN "isVisited" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN "visitedDate" TIMESTAMP(3),
+ADD COLUMN "personalRating" INTEGER,
+ADD COLUMN "tags" JSONB,
+ADD COLUMN "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+-- Update existing records to have updatedAt = createdAt
+UPDATE "CollectionCoffeeShop" SET "updatedAt" = "createdAt";
+*/
