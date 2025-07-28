@@ -36,15 +36,76 @@ export default function FoodPlaceDetails() {
     visitDate: ''
   });
 
-  // Placeholder images for different food types
-  const foodImages = [
-    'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop&auto=format&q=80', // Restaurant
-    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=400&fit=crop&auto=format&q=80', // Cafe
-    'https://images.unsplash.com/photo-1566737236500-c8ac43014a8e?w=600&h=400&fit=crop&auto=format&q=80', // Bar
-    'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=600&h=400&fit=crop&auto=format&q=80', // Fast food
-  ];
+  // Category-specific placeholder images for different food types
+  const foodImages = {
+    restaurant: [
+      'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop&auto=format&q=80', // Fine dining restaurant
+      'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=600&h=400&fit=crop&auto=format&q=80', // Restaurant interior
+      'https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=600&h=400&fit=crop&auto=format&q=80', // Elegant restaurant
+      'https://images.unsplash.com/photo-1590846406792-0adc7f938f1d?w=600&h=400&fit=crop&auto=format&q=80'  // Modern restaurant
+    ],
+    cafe: [
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=400&fit=crop&auto=format&q=80', // Coffee shop interior
+      'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&h=400&fit=crop&auto=format&q=80', // Cozy cafe
+      'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=600&h=400&fit=crop&auto=format&q=80', // Cafe exterior
+      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop&auto=format&q=80'  // Modern cafe
+    ],
+    bar: [
+      'https://images.unsplash.com/photo-1566737236500-c8ac43014a8e?w=600&h=400&fit=crop&auto=format&q=80', // Bar interior
+      'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=600&h=400&fit=crop&auto=format&q=80', // Cocktail bar
+      'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=600&h=400&fit=crop&auto=format&q=80', // Sports bar
+      'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=600&h=400&fit=crop&auto=format&q=80'  // Pub atmosphere
+    ],
+    pub: [
+      'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=600&h=400&fit=crop&auto=format&q=80', // Traditional pub
+      'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=600&h=400&fit=crop&auto=format&q=80', // Beer pub
+      'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=600&h=400&fit=crop&auto=format&q=80', // Cozy pub
+      'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=600&h=400&fit=crop&auto=format&q=80'  // British pub
+    ],
+    fast_food: [
+      'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=600&h=400&fit=crop&auto=format&q=80', // Burger place
+      'https://images.unsplash.com/photo-1513639776629-7b61b0ac49cb?w=600&h=400&fit=crop&auto=format&q=80', // Fast food counter
+      'https://images.unsplash.com/photo-1586816001966-79b736744398?w=600&h=400&fit=crop&auto=format&q=80', // Modern fast food
+      'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=600&h=400&fit=crop&auto=format&q=80'  // Quick service
+    ],
+    food_court: [
+      'https://images.unsplash.com/photo-1567521464027-f32a2d9b9e89?w=600&h=400&fit=crop&auto=format&q=80', // Food court
+      'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&h=400&fit=crop&auto=format&q=80', // Mall food court
+      'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=600&h=400&fit=crop&auto=format&q=80', // Food hall
+      'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&h=400&fit=crop&auto=format&q=80'  // Market food court
+    ],
+    ice_cream: [
+      'https://images.unsplash.com/photo-1488900128323-21503983a07e?w=600&h=400&fit=crop&auto=format&q=80', // Ice cream shop
+      'https://images.unsplash.com/photo-1563227812-0ea4c22e6cc8?w=600&h=400&fit=crop&auto=format&q=80', // Gelato shop
+      'https://images.unsplash.com/photo-1579952363873-27d3bfad9c0d?w=600&h=400&fit=crop&auto=format&q=80', // Ice cream parlor
+      'https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=600&h=400&fit=crop&auto=format&q=80'  // Dessert shop
+    ],
+    biergarten: [
+      'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=600&h=400&fit=crop&auto=format&q=80', // Beer garden
+      'https://images.unsplash.com/photo-1436076863939-06870fe779c2?w=600&h=400&fit=crop&auto=format&q=80', // Outdoor beer garden
+      'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=600&h=400&fit=crop&auto=format&q=80', // Beer hall
+      'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=600&h=400&fit=crop&auto=format&q=80'  // German beer garden
+    ],
+    taproom: [
+      'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=600&h=400&fit=crop&auto=format&q=80', // Brewery taproom
+      'https://images.unsplash.com/photo-1436076863939-06870fe779c2?w=600&h=400&fit=crop&auto=format&q=80', // Craft beer taproom
+      'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=600&h=400&fit=crop&auto=format&q=80', // Beer tasting room
+      'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=600&h=400&fit=crop&auto=format&q=80'  // Industrial taproom
+    ]
+  };
 
-  const getRandomFoodImage = () => foodImages[Math.floor(Math.random() * foodImages.length)];
+  const getRandomFoodImage = () => foodImages['restaurant'][Math.floor(Math.random() * foodImages['restaurant'].length)];
+
+  const getImageForCategory = (category) => {
+    // Extract the category type from the full category string (e.g., "catering.restaurant" -> "restaurant")
+    const categoryType = category ? category.replace('catering.', '') : 'restaurant';
+    
+    // Get images for this category, fallback to restaurant if not found
+    const categoryImages = foodImages[categoryType] || foodImages.restaurant;
+    
+    // Return a random image from this category
+    return categoryImages[Math.floor(Math.random() * categoryImages.length)];
+  };
 
   useEffect(() => {
     fetchFoodPlaceDetails();
@@ -70,7 +131,7 @@ export default function FoodPlaceDetails() {
         category: "restaurant",
         cuisine: "Italian, Mediterranean",
         description: "A cozy bistro serving authentic Italian cuisine with a modern twist. Perfect for romantic dinners and family gatherings.",
-        imageUrl: getRandomFoodImage(),
+        imageUrl: getImageForCategory("restaurant"),
         latitude: 42.3601,
         longitude: -71.0589,
         openingHours: {
@@ -120,7 +181,7 @@ export default function FoodPlaceDetails() {
           rating: 4.3,
           distance: "0.8",
           category: "restaurant",
-          imageUrl: getRandomFoodImage(),
+          imageUrl: getImageForCategory("restaurant"),
           priceLevel: 2
         },
         {
@@ -130,7 +191,7 @@ export default function FoodPlaceDetails() {
           rating: 4.6,
           distance: "1.2",
           category: "restaurant",
-          imageUrl: getRandomFoodImage(),
+          imageUrl: getImageForCategory("restaurant"),
           priceLevel: 3
         },
         {
@@ -140,7 +201,7 @@ export default function FoodPlaceDetails() {
           rating: 4.4,
           distance: "1.5",
           category: "cafe",
-          imageUrl: getRandomFoodImage(),
+          imageUrl: getImageForCategory("cafe"),
           priceLevel: 1
         }
       ];
@@ -223,20 +284,65 @@ export default function FoodPlaceDetails() {
       return;
     }
     
-    // Simulate API call
-    const review = {
-      id: Date.now(),
-      user: { username: user.username },
-      rating: parseInt(newReview.rating),
-      comment: newReview.comment,
-      visitDate: newReview.visitDate,
-      createdAt: new Date().toISOString()
-    };
-    
-    setReviews([review, ...reviews]);
-    setNewReview({ rating: '', comment: '', visitDate: '' });
-    setShowReviewForm(false);
-    alert("Review added successfully!");
+    try {
+      // Try to submit to real API first
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${apiUrl}/api/reviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          coffeeShopId: foodPlaceId,
+          rating: parseInt(newReview.rating),
+          title: `Review for ${foodPlace.name}`,
+          comment: newReview.comment,
+          visitDate: newReview.visitDate || null
+        })
+      });
+
+      if (response.ok) {
+        const submittedReview = await response.json();
+        console.log("Review submitted successfully to API:", submittedReview);
+        
+        // Add the new review to the local list with user info
+        const reviewWithUser = {
+          ...submittedReview,
+          user: { username: user.username, id: user.id }
+        };
+        
+        setReviews([reviewWithUser, ...reviews]);
+        setNewReview({ rating: '', comment: '', visitDate: '' });
+        setShowReviewForm(false);
+        alert("Review submitted successfully! It will appear in the Reviews page.");
+      } else {
+        throw new Error("API submission failed");
+      }
+    } catch (error) {
+      console.log("API submission failed, using local simulation:", error);
+      
+      // Fallback to local simulation if API fails
+      const review = {
+        id: Date.now(),
+        user: { username: user.username, id: user.id },
+        rating: parseInt(newReview.rating),
+        title: `Review for ${foodPlace.name}`,
+        comment: newReview.comment,
+        visitDate: newReview.visitDate,
+        createdAt: new Date().toISOString(),
+        foodPlace: {
+          id: foodPlace.id,
+          name: foodPlace.name,
+          address: foodPlace.address,
+          category: foodPlace.category
+        },
+        helpfulCount: 0
+      };
+      
+      setReviews([review, ...reviews]);
+      setNewReview({ rating: '', comment: '', visitDate: '' });
+      setShowReviewForm(false);
+      alert("Review added successfully!");
+    }
   };
 
   const renderStars = (rating) => {
@@ -322,12 +428,12 @@ export default function FoodPlaceDetails() {
           {/* Hero Image */}
           <div className="position-relative">
             <img
-              src={foodPlace.imageUrl || getRandomFoodImage()}
+              src={foodPlace.imageUrl || getImageForCategory(foodPlace.category)}
               alt={foodPlace.name}
               className="w-100"
               style={{ height: '400px', objectFit: 'cover' }}
               onError={(e) => {
-                e.target.src = getRandomFoodImage();
+                e.target.src = getImageForCategory(foodPlace.category);
               }}
             />
             
@@ -678,7 +784,7 @@ export default function FoodPlaceDetails() {
                     onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
                   >
                     <img
-                      src={place.imageUrl || getRandomFoodImage()}
+                      src={place.imageUrl || getImageForCategory(place.category)}
                       alt={place.name}
                       className="card-img-top"
                       style={{ 
@@ -687,7 +793,7 @@ export default function FoodPlaceDetails() {
                         borderRadius: '15px 15px 0 0'
                       }}
                       onError={(e) => {
-                        e.target.src = getRandomFoodImage();
+                        e.target.src = getImageForCategory(place.category);
                       }}
                     />
                     

@@ -6,6 +6,7 @@ import backgroundImage from "../assets/food_backgroundd.avif"; // Your food back
 
 export default function Register() {
   const navigate = useNavigate();
+  const navigate = useNavigate();
   const { register } = useAuthUser();
   
   const [currentStep, setCurrentStep] = useState(1);
@@ -14,10 +15,12 @@ export default function Register() {
     email: "",
     password: "",
     confirmPassword: ""
+    confirmPassword: ""
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [error, setError] = useState("");
 
   const handleChange = (e) => {
@@ -37,6 +40,7 @@ export default function Register() {
     setCurrentStep(1);
   };
 
+  const handleSubmit = async (e) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -76,6 +80,10 @@ export default function Register() {
       }
     } catch (error) {
       setError("An error occurred. Please try again.");
+        setError(result.error || "Registration failed");
+      }
+    } catch (error) {
+      setError("An error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -84,7 +92,19 @@ export default function Register() {
   return (
     <div 
       className="d-flex align-items-center"
+    <div 
+      className="d-flex align-items-center"
       style={{
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: "contain",
+        backgroundPosition: "left center",
+        backgroundRepeat: "no-repeat",
+        backgroundColor: "#f8f9fa",
+        height: "100vh",
+        paddingTop: "80px", // Space for navbar
+        paddingBottom: "20px", // Space for footer
+        overflow: "hidden", // Prevent scrolling
+        boxSizing: "border-box"
         backgroundImage: `url(${backgroundImage})`,
         backgroundSize: "contain",
         backgroundPosition: "left center",
