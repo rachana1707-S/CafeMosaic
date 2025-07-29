@@ -1,8 +1,9 @@
+/* eslint-disable no-unused-vars */
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthUser } from "../context/AuthContext";
 import { User, Lock, Eye, EyeOff, Utensils } from "lucide-react";
-import backgroundImage from "../assets/food_background.jpg"; // Your food background
+import backgroundImage from "../assets/food_backgroundd.avif"; // Your food background
 
 export default function Login() {
   const navigate = useNavigate();
