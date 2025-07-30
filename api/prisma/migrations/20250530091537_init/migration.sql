@@ -234,3 +234,100 @@ INSERT INTO "CoffeeShopCategory" ("name", "description", "color", "icon") VALUES
 ('Coworking Friendly', 'Great for working with WiFi and outlets', '#9B59B6', 'wifi'),
 ('Specialty', 'Specialty coffee, third-wave coffee', '#E74C3C', 'star'),
 ('Bakery Cafe', 'Coffee shops with fresh baked goods', '#F39C12', 'bread-slice');
+
+
+-- ========================================
+-- COMPLETE DATABASE MIGRATION
+-- Add all missing fields for full collection functionality
+-- ========================================
+
+-- 1. Add missing fields to CoffeeShop table
+ALTER TABLE "CoffeeShop" 
+ADD COLUMN IF NOT EXISTS "category" TEXT,
+ADD COLUMN IF NOT EXISTS "cuisine" TEXT;
+
+-- Set default values for existing records
+UPDATE "CoffeeShop" SET "category" = 'restaurant' WHERE "category" IS NULL;
+UPDATE "CoffeeShop" SET "cuisine" = 'International' WHERE "cuisine" IS NULL;
+
+-- 2. Add ALL missing fields to CollectionCoffeeShop table
+ALTER TABLE "CollectionCoffeeShop" 
+ADD COLUMN IF NOT EXISTS "isVisited" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN IF NOT EXISTS "visitedDate" TIMESTAMP(3),
+ADD COLUMN IF NOT EXISTS "personalRating" DOUBLE PRECISION,
+ADD COLUMN IF NOT EXISTS "tags" JSONB,
+ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+-- Update existing records to have updatedAt = createdAt
+UPDATE "CollectionCoffeeShop" SET "updatedAt" = "createdAt" WHERE "updatedAt" IS NULL;
+
+-- 3. Add more food categories to support restaurants, bars, etc.
+INSERT INTO "CoffeeShopCategory" ("name", "description", "color", "icon") VALUES
+('Restaurant', 'Full-service restaurants', '#FF6B6B', 'utensils'),
+('Fast Food', 'Quick service restaurants', '#4ECDC4', 'zap'),
+('Bar', 'Bars and pubs serving drinks', '#45B7D1', 'wine'),
+('Ice Cream', 'Ice cream shops and gelaterias', '#96CEB4', 'ice-cream'),
+('Food Court', 'Food courts and markets', '#FFEAA7', 'shopping-cart'),
+('Biergarten', 'Beer gardens and outdoor dining', '#DDA0DD', 'beer'),
+('Taproom', 'Craft beer taprooms', '#98D8C8', 'beer-tap'),
+('Brunch Spot', 'Great places for brunch', '#F7DC6F', 'sun'),
+('Late Night', 'Open late for night owls', '#BB8FCE', 'moon'),
+('Family Friendly', 'Great for families with kids', '#85C1E9', 'users')
+ON CONFLICT (name) DO NOTHING;
+
+-- 4. Create indexes for better performance on new fields
+CREATE INDEX IF NOT EXISTS "CoffeeShop_category_idx" ON "CoffeeShop"("category");
+CREATE INDEX IF NOT EXISTS "CoffeeShop_cuisine_idx" ON "CoffeeShop"("cuisine");
+CREATE INDEX IF NOT EXISTS "CollectionCoffeeShop_isVisited_idx" ON "CollectionCoffeeShop"("isVisited");
+CREATE INDEX IF NOT EXISTS "CollectionCoffeeShop_visitedDate_idx" ON "CollectionCoffeeShop"("visitedDate");
+CREATE INDEX IF NOT EXISTS "CollectionCoffeeShop_updatedAt_idx" ON "CollectionCoffeeShop"("updatedAt");
+
+-- 5. Verify all changes were applied correctly
+SELECT 
+    table_name,
+    column_name,
+    data_type,
+    is_nullable,
+    column_default
+FROM information_schema.columns 
+WHERE table_name IN ('CoffeeShop', 'CollectionCoffeeShop')
+AND column_name IN ('category', 'cuisine', 'isVisited', 'visitedDate', 'personalRating', 'tags', 'updatedAt')
+ORDER BY table_name, column_name;
+
+-- 6. Show table structures to confirm everything is correct
+\echo 'CoffeeShop table structure:'
+\d "CoffeeShop"
+
+\echo 'CollectionCoffeeShop table structure:'
+\d "CollectionCoffeeShop"
+
+\echo 'Available categories:'
+SELECT name, description, color FROM "CoffeeShopCategory" ORDER BY name;
+
+-- Run these commands one by one in your database
+
+-- Add category field to CoffeeShop
+ALTER TABLE "CoffeeShop" ADD COLUMN "category" TEXT;
+
+-- Add cuisine field to CoffeeShop
+ALTER TABLE "CoffeeShop" ADD COLUMN "cuisine" TEXT;
+
+-- Add isVisited field to CollectionCoffeeShop
+ALTER TABLE "CollectionCoffeeShop" ADD COLUMN "isVisited" BOOLEAN NOT NULL DEFAULT false;
+
+-- Add visitedDate field to CollectionCoffeeShop
+ALTER TABLE "CollectionCoffeeShop" ADD COLUMN "visitedDate" TIMESTAMP(3);
+
+-- Add personalRating field to CollectionCoffeeShop
+ALTER TABLE "CollectionCoffeeShop" ADD COLUMN "personalRating" DOUBLE PRECISION;
+
+-- Add tags field to CollectionCoffeeShop
+ALTER TABLE "CollectionCoffeeShop" ADD COLUMN "tags" JSONB;
+
+-- Add updatedAt field to CollectionCoffeeShop
+ALTER TABLE "CollectionCoffeeShop" ADD COLUMN "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+-- Set defaults for existing records
+UPDATE "CoffeeShop" SET "category" = 'restaurant' WHERE "category" IS NULL;
+UPDATE "CoffeeShop" SET "cuisine" = 'International' WHERE "cuisine" IS NULL;
+UPDATE "CollectionCoffeeShop" SET "updatedAt" = "createdAt" WHERE "updatedAt" IS NULL;

@@ -1,79 +1,83 @@
 /* eslint-disable no-unused-vars */
-import React, { useState, useEffect } from "react";
+
+
+import React, { useState, useEffect } from 'react';
 import { 
-  FolderPlus,
-  Folder,
-  Plus,
+  X, 
+  Folder, 
+  FolderPlus, 
+  Plus, 
   Check,
   Search,
-  MapPin,
   Star,
-  StickyNote,
-  CheckCircle2,
-  Circle,
-  Calendar,
-  X
-} from "lucide-react";
+  MapPin
+} from 'lucide-react';
 
-export default function CollectionSelectorModal({ 
+const CollectionSelectorModal = ({ 
   show, 
   onHide, 
-  collections = [], 
-  selectedPlace = null, 
-  onAddToCollection,
-  onCreateCollection 
-}) {
+  selectedPlace, 
+  onPlaceAddedToCollection 
+}) => {
+  const [collections, setCollections] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCollections, setSelectedCollections] = useState(new Set());
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [placeNotes, setPlaceNotes] = useState({});
-  const [isVisitedFlags, setIsVisitedFlags] = useState({});
+  const [selectedCollections, setSelectedCollections] = useState([]);
+  const [adding, setAdding] = useState(false);
   
   const [newCollection, setNewCollection] = useState({
     name: '',
     description: '',
-    color: '#FFD700'
+    color: '#FFD700',
+    isPublic: false
   });
 
   const predefinedColors = [
     '#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', 
-    '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8'
+    '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8',
+    '#F7DC6F', '#BB8FCE', '#85C1E9', '#82E0AA'
   ];
 
   useEffect(() => {
-    if (show && selectedPlace) {
-      // Check which collections already contain this place
-      const existingCollections = new Set();
-      const existingNotes = {};
-      const existingVisited = {};
-      
-      collections.forEach(collection => {
-        const placeInCollection = collection.places?.find(p => 
-          p.id === selectedPlace.id || p.placeId === selectedPlace.placeId
-        );
-        
-        if (placeInCollection) {
-          existingCollections.add(collection.id);
-          if (placeInCollection.notes) {
-            existingNotes[collection.id] = placeInCollection.notes;
-          }
-          if (placeInCollection.isVisited !== undefined) {
-            existingVisited[collection.id] = placeInCollection.isVisited;
-          }
-        }
-      });
-      
-      setSelectedCollections(existingCollections);
-      setPlaceNotes(existingNotes);
-      setIsVisitedFlags(existingVisited);
+    if (show) {
+      loadCollections();
     }
-  }, [show, selectedPlace, collections]);
+  }, [show]);
 
-  const handleCreateCollection = async (e) => {
-    e.preventDefault();
-    
+  const loadCollections = async () => {
+    try {
+      setLoading(true);
+      
+      // Try API first
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      try {
+        const response = await fetch(`${apiUrl}/api/collections`, {
+          credentials: 'include'
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setCollections(data.collections || []);
+        } else {
+          throw new Error('API failed');
+        }
+      } catch (apiError) {
+        // Fallback to localStorage
+        const savedCollections = JSON.parse(localStorage.getItem('userCollections') || '[]');
+        setCollections(savedCollections);
+      }
+    } catch (error) {
+      console.error('Error loading collections:', error);
+      setCollections([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateCollection = async () => {
     if (!newCollection.name.trim()) {
-      alert("Please enter a collection name");
+      alert('Please enter a collection name');
       return;
     }
 
@@ -83,7 +87,7 @@ export default function CollectionSelectorModal({
         name: newCollection.name.trim(),
         description: newCollection.description.trim(),
         color: newCollection.color,
-        isPublic: false,
+        isPublic: newCollection.isPublic,
         dateCreated: new Date().toISOString(),
         dateModified: new Date().toISOString(),
         placesCount: 0,
@@ -102,217 +106,231 @@ export default function CollectionSelectorModal({
         });
 
         if (response.ok) {
-          const result = await response.json();
-          if (onCreateCollection) {
-            onCreateCollection(result.collection);
-          }
+          const savedCollection = await response.json();
+          const newCollections = [savedCollection.collection, ...collections];
+          setCollections(newCollections);
+          
+          // Auto-select the new collection
+          setSelectedCollections([savedCollection.collection.id]);
         } else {
           throw new Error('API failed');
         }
       } catch (apiError) {
         // Fallback to localStorage
-        const savedCollections = JSON.parse(localStorage.getItem('userCollections') || '[]');
-        const updatedCollections = [collectionData, ...savedCollections];
+        const updatedCollections = [collectionData, ...collections];
         localStorage.setItem('userCollections', JSON.stringify(updatedCollections));
+        setCollections(updatedCollections);
         
-        if (onCreateCollection) {
-          onCreateCollection(collectionData);
-        }
+        // Auto-select the new collection
+        setSelectedCollections([collectionData.id]);
       }
 
-      // Auto-select the new collection
-      setSelectedCollections(prev => new Set([...prev, collectionData.id]));
-      
       // Reset form
-      setNewCollection({ name: '', description: '', color: '#FFD700' });
+      setNewCollection({
+        name: '',
+        description: '',
+        color: '#FFD700',
+        isPublic: false
+      });
       setShowCreateForm(false);
       
     } catch (error) {
-      console.error("Error creating collection:", error);
-      alert("Error creating collection. Please try again.");
+      console.error('Error creating collection:', error);
+      alert('Error creating collection. Please try again.');
     }
   };
 
-  const handleSaveChanges = async () => {
-    if (!selectedPlace) return;
+  const handleAddToSelectedCollections = async () => {
+    if (selectedCollections.length === 0) {
+      alert('Please select at least one collection');
+      return;
+    }
+
+    if (!selectedPlace) {
+      alert('No place selected');
+      return;
+    }
 
     try {
-      // Process each collection
-      for (const collection of collections) {
-        const isSelected = selectedCollections.has(collection.id);
-        const existingPlace = collection.places?.find(p => 
-          p.id === selectedPlace.id || p.placeId === selectedPlace.placeId
-        );
+      setAdding(true);
+      
+      const placeData = {
+        id: selectedPlace.id || selectedPlace.placeId,
+        placeId: selectedPlace.placeId || selectedPlace.id,
+        name: selectedPlace.name,
+        address: selectedPlace.address,
+        phone: selectedPlace.phone,
+        website: selectedPlace.website,
+        rating: selectedPlace.rating,
+        priceLevel: selectedPlace.priceLevel,
+        latitude: selectedPlace.latitude,
+        longitude: selectedPlace.longitude,
+        imageUrl: selectedPlace.imageUrl,
+        description: selectedPlace.description,
+        openingHours: selectedPlace.openingHours,
+        amenities: selectedPlace.amenities,
+        category: selectedPlace.category,
+        cuisine: selectedPlace.cuisine,
+        notes: '',
+        isVisited: false
+      };
+
+      // Try API first - use batch endpoint for multiple collections
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      
+      try {
+        if (selectedCollections.length > 1) {
+          // Use batch endpoint for multiple collections
+          const response = await fetch(`${apiUrl}/api/collections/batch/add-place`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              collectionIds: selectedCollections,
+              place: placeData
+            })
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            const addedCount = result.summary.added;
+            const alreadyExistsCount = result.summary.alreadyExists;
+            const failedCount = result.summary.failed;
+            
+            let message = `${selectedPlace.name} processing complete!\n`;
+            if (addedCount > 0) message += `✅ Added to ${addedCount} collection(s)\n`;
+            if (alreadyExistsCount > 0) message += `ℹ️ Already in ${alreadyExistsCount} collection(s)\n`;
+            if (failedCount > 0) message += `❌ Failed to add to ${failedCount} collection(s)`;
+            
+            alert(message);
+            
+            // Callback to parent component
+            if (onPlaceAddedToCollection) {
+              onPlaceAddedToCollection(selectedPlace, selectedCollections);
+            }
+            
+            onHide();
+            return;
+          } else {
+            throw new Error('Batch API failed');
+          }
+        } else {
+          // Single collection - use regular endpoint
+          const collectionId = selectedCollections[0];
+          const response = await fetch(`${apiUrl}/api/collections/${collectionId}/places`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(placeData)
+          });
+
+          if (response.ok) {
+            alert(`${selectedPlace.name} added to collection!`);
+            
+            // Callback to parent component
+            if (onPlaceAddedToCollection) {
+              onPlaceAddedToCollection(selectedPlace, selectedCollections);
+            }
+            
+            onHide();
+            return;
+          } else {
+            const errorData = await response.json();
+            if (errorData.message?.includes('already exists')) {
+              alert(`${selectedPlace.name} is already in this collection!`);
+              onHide();
+              return;
+            } else {
+              throw new Error('Single API failed');
+            }
+          }
+        }
+      } catch (apiError) {
+        console.log('API failed, falling back to localStorage:', apiError.message);
         
-        if (isSelected && !existingPlace) {
-          // Add place to collection
-          await addPlaceToCollection(collection.id, {
-            ...selectedPlace,
-            notes: placeNotes[collection.id] || '',
-            isVisited: isVisitedFlags[collection.id] || false,
-            dateAdded: new Date().toISOString()
-          });
-        } else if (!isSelected && existingPlace) {
-          // Remove place from collection
-          await removePlaceFromCollection(collection.id, selectedPlace.id || selectedPlace.placeId);
-        } else if (isSelected && existingPlace) {
-          // Update existing place in collection
-          await updatePlaceInCollection(collection.id, selectedPlace.id || selectedPlace.placeId, {
-            notes: placeNotes[collection.id] || '',
-            isVisited: isVisitedFlags[collection.id] || false
-          });
+        // Fallback to localStorage for all collections
+        let successCount = 0;
+        const savedCollections = JSON.parse(localStorage.getItem('userCollections') || '[]');
+        const updatedCollections = savedCollections.map(collection => {
+          if (selectedCollections.includes(collection.id) || selectedCollections.includes(collection.id.toString())) {
+            // Check if place already exists
+            const placeExists = collection.places.some(place => 
+              place.id === placeData.id || 
+              place.placeId === placeData.placeId
+            );
+            
+            if (!placeExists) {
+              const newPlace = {
+                ...placeData,
+                dateAdded: new Date().toISOString()
+              };
+              
+              successCount++;
+              return {
+                ...collection,
+                places: [newPlace, ...collection.places],
+                placesCount: (collection.placesCount || 0) + 1,
+                dateModified: new Date().toISOString()
+              };
+            }
+          }
+          return collection;
+        });
+        
+        localStorage.setItem('userCollections', JSON.stringify(updatedCollections));
+        
+        if (successCount > 0) {
+          const message = successCount === 1 
+            ? `${selectedPlace.name} added to collection!`
+            : `${selectedPlace.name} added to ${successCount} collections!`;
+          
+          alert(message);
+          
+          // Callback to parent component
+          if (onPlaceAddedToCollection) {
+            onPlaceAddedToCollection(selectedPlace, selectedCollections);
+          }
+          
+          onHide();
+        } else {
+          alert(`${selectedPlace.name} is already in the selected collection(s)!`);
+          onHide();
         }
       }
-      
-      alert("Changes saved successfully!");
-      onHide();
-      
     } catch (error) {
-      console.error("Error saving changes:", error);
-      alert("Error saving changes. Please try again.");
+      console.error('Error adding place to collections:', error);
+      alert('Error adding place to collections. Please try again.');
+    } finally {
+      setAdding(false);
     }
   };
 
-  const addPlaceToCollection = async (collectionId, placeData) => {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-    
-    try {
-      const response = await fetch(`${apiUrl}/api/collections/${collectionId}/places`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(placeData)
-      });
-
-      if (!response.ok) throw new Error('API failed');
-    } catch (apiError) {
-      // Fallback to localStorage
-      const savedCollections = JSON.parse(localStorage.getItem('userCollections') || '[]');
-      const updatedCollections = savedCollections.map(collection => {
-        if (collection.id === collectionId) {
-          const updatedPlaces = [...(collection.places || []), placeData];
-          return {
-            ...collection,
-            places: updatedPlaces,
-            placesCount: updatedPlaces.length,
-            visitedCount: updatedPlaces.filter(p => p.isVisited).length,
-            dateModified: new Date().toISOString()
-          };
-        }
-        return collection;
-      });
-      localStorage.setItem('userCollections', JSON.stringify(updatedCollections));
-    }
-  };
-
-  const removePlaceFromCollection = async (collectionId, placeId) => {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-    
-    try {
-      const response = await fetch(`${apiUrl}/api/collections/${collectionId}/places/${placeId}`, {
-        method: 'DELETE',
-        credentials: 'include'
-      });
-
-      if (!response.ok) throw new Error('API failed');
-    } catch (apiError) {
-      // Fallback to localStorage
-      const savedCollections = JSON.parse(localStorage.getItem('userCollections') || '[]');
-      const updatedCollections = savedCollections.map(collection => {
-        if (collection.id === collectionId) {
-          const updatedPlaces = (collection.places || []).filter(p => 
-            p.id !== placeId && p.placeId !== placeId
-          );
-          return {
-            ...collection,
-            places: updatedPlaces,
-            placesCount: updatedPlaces.length,
-            visitedCount: updatedPlaces.filter(p => p.isVisited).length,
-            dateModified: new Date().toISOString()
-          };
-        }
-        return collection;
-      });
-      localStorage.setItem('userCollections', JSON.stringify(updatedCollections));
-    }
-  };
-
-  const updatePlaceInCollection = async (collectionId, placeId, updateData) => {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-    
-    try {
-      const response = await fetch(`${apiUrl}/api/collections/${collectionId}/places/${placeId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(updateData)
-      });
-
-      if (!response.ok) throw new Error('API failed');
-    } catch (apiError) {
-      // Fallback to localStorage
-      const savedCollections = JSON.parse(localStorage.getItem('userCollections') || '[]');
-      const updatedCollections = savedCollections.map(collection => {
-        if (collection.id === collectionId) {
-          const updatedPlaces = (collection.places || []).map(place => {
-            if (place.id === placeId || place.placeId === placeId) {
-              return { ...place, ...updateData };
-            }
-            return place;
-          });
-          return {
-            ...collection,
-            places: updatedPlaces,
-            visitedCount: updatedPlaces.filter(p => p.isVisited).length,
-            dateModified: new Date().toISOString()
-          };
-        }
-        return collection;
-      });
-      localStorage.setItem('userCollections', JSON.stringify(updatedCollections));
-    }
+  const toggleCollectionSelection = (collectionId) => {
+    setSelectedCollections(prev => {
+      if (prev.includes(collectionId)) {
+        return prev.filter(id => id !== collectionId);
+      } else {
+        return [...prev, collectionId];
+      }
+    });
   };
 
   const filteredCollections = collections.filter(collection =>
-    collection.name.toLowerCase().includes(searchQuery.toLowerCase())
+    collection.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    collection.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  const toggleCollection = (collectionId) => {
-    const newSelected = new Set(selectedCollections);
-    if (newSelected.has(collectionId)) {
-      newSelected.delete(collectionId);
-      // Clear notes and visited flag when unchecking
-      const newNotes = { ...placeNotes };
-      const newVisited = { ...isVisitedFlags };
-      delete newNotes[collectionId];
-      delete newVisited[collectionId];
-      setPlaceNotes(newNotes);
-      setIsVisitedFlags(newVisited);
-    } else {
-      newSelected.add(collectionId);
-    }
-    setSelectedCollections(newSelected);
-  };
 
   if (!show) return null;
 
   return (
     <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-      <div className="modal-dialog modal-lg modal-dialog-scrollable">
+      <div className="modal-dialog modal-lg">
         <div className="modal-content" style={{ borderRadius: '16px' }}>
-          <div className="modal-header border-0 pb-0">
-            <div>
-              <h5 className="modal-title fw-bold mb-1">
-                <FolderPlus size={24} className="me-2" style={{ color: "#FFD700" }} />
-                Add to Collections
-              </h5>
-              {selectedPlace && (
-                <p className="text-muted mb-0 small">
-                  <MapPin size={14} className="me-1" />
-                  {selectedPlace.name}
-                </p>
-              )}
-            </div>
+          <div className="modal-header border-0">
+            <h5 className="modal-title fw-bold">
+              <Folder size={24} className="me-2" style={{ color: "#FFD700" }} />
+              Add to Collection
+            </h5>
             <button 
               type="button" 
               className="btn-close" 
@@ -321,8 +339,37 @@ export default function CollectionSelectorModal({
           </div>
           
           <div className="modal-body">
+            {/* Selected Place Info */}
+            {selectedPlace && (
+              <div className="card bg-light mb-4">
+                <div className="card-body py-3">
+                  <div className="d-flex align-items-center">
+                    <img
+                      src={selectedPlace.imageUrl}
+                      alt={selectedPlace.name}
+                      className="rounded me-3"
+                      style={{ width: '60px', height: '60px', objectFit: 'cover' }}
+                    />
+                    <div>
+                      <h6 className="mb-1 fw-bold">{selectedPlace.name}</h6>
+                      <p className="mb-0 text-muted small">
+                        <MapPin size={12} className="me-1" />
+                        {selectedPlace.address}
+                      </p>
+                      {selectedPlace.rating && (
+                        <div className="d-flex align-items-center">
+                          <Star size={12} className="text-warning me-1" fill="currentColor" />
+                          <span className="small">{selectedPlace.rating}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Search Collections */}
-            <div className="mb-4">
+            <div className="mb-3">
               <div className="input-group">
                 <span className="input-group-text bg-light border-end-0">
                   <Search size={16} className="text-muted" />
@@ -338,175 +385,159 @@ export default function CollectionSelectorModal({
             </div>
 
             {/* Create New Collection Button */}
-            <div className="mb-4">
-              <button 
-                className="btn w-100 text-dark fw-bold"
+            <div className="mb-3">
+              <button
+                className="btn w-100 text-dark fw-bold border-2 border-dashed"
                 onClick={() => setShowCreateForm(!showCreateForm)}
-                style={{ backgroundColor: "#FFD700", border: "1px dashed #666" }}
+                style={{ 
+                  backgroundColor: showCreateForm ? "#FFD700" : "transparent",
+                  borderColor: "#FFD700"
+                }}
               >
-                <Plus size={16} className="me-2" />
-                Create New Collection
+                <FolderPlus size={16} className="me-2" />
+                {showCreateForm ? "Cancel" : "Create New Collection"}
               </button>
             </div>
 
             {/* Create Collection Form */}
             {showCreateForm && (
-              <div className="card mb-4" style={{ backgroundColor: '#f8f9fa' }}>
+              <div className="card border-0 bg-light mb-4">
                 <div className="card-body">
-                  <form onSubmit={handleCreateCollection}>
-                    <div className="row g-3">
-                      <div className="col-md-8">
-                        <input
-                          type="text"
-                          className="form-control"
-                          placeholder="Collection name..."
-                          value={newCollection.name}
-                          onChange={(e) => setNewCollection({...newCollection, name: e.target.value})}
-                          required
-                        />
-                      </div>
-                      <div className="col-md-4">
-                        <div className="d-flex gap-1">
-                          {predefinedColors.slice(0, 4).map((color) => (
-                            <button
-                              key={color}
-                              type="button"
-                              className={`btn p-0 ${newCollection.color === color ? 'border border-dark border-2' : 'border'}`}
-                              style={{ 
-                                width: '25px', 
-                                height: '25px', 
-                                backgroundColor: color,
-                                borderRadius: '50%'
-                              }}
-                              onClick={() => setNewCollection({...newCollection, color})}
-                            />
-                          ))}
-                        </div>
-                      </div>
+                  <div className="row g-3">
+                    <div className="col-md-8">
+                      <label className="form-label fw-semibold">Collection Name *</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="e.g., Weekend Brunch Spots"
+                        value={newCollection.name}
+                        onChange={(e) => setNewCollection({...newCollection, name: e.target.value})}
+                      />
                     </div>
                     
+                    <div className="col-md-4">
+                      <label className="form-label fw-semibold">Color</label>
+                      <div className="d-flex flex-wrap gap-2">
+                        {predefinedColors.slice(0, 6).map((color) => (
+                          <button
+                            key={color}
+                            type="button"
+                            className={`btn p-0 ${newCollection.color === color ? 'border border-dark border-2' : 'border'}`}
+                            style={{ 
+                              width: '25px', 
+                              height: '25px', 
+                              backgroundColor: color,
+                              borderRadius: '50%'
+                            }}
+                            onClick={() => setNewCollection({...newCollection, color})}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mb-3">
+                    <label className="form-label fw-semibold">Description</label>
                     <textarea
-                      className="form-control mt-2"
+                      className="form-control"
                       rows="2"
-                      placeholder="Description (optional)..."
+                      placeholder="Describe this collection..."
                       value={newCollection.description}
                       onChange={(e) => setNewCollection({...newCollection, description: e.target.value})}
                     />
-                    
-                    <div className="d-flex gap-2 mt-3">
-                      <button 
-                        type="submit" 
-                        className="btn btn-sm text-dark fw-bold"
-                        style={{ backgroundColor: "#FFD700", border: "none" }}
-                      >
-                        Create
-                      </button>
-                      <button 
-                        type="button" 
-                        className="btn btn-sm btn-outline-secondary"
-                        onClick={() => setShowCreateForm(false)}
-                      >
-                        Cancel
-                      </button>
+                  </div>
+                  
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        checked={newCollection.isPublic}
+                        onChange={(e) => setNewCollection({...newCollection, isPublic: e.target.checked})}
+                      />
+                      <label className="form-check-label small">
+                        Make public
+                      </label>
                     </div>
-                  </form>
+                    
+                    <button 
+                      className="btn btn-sm text-dark fw-bold"
+                      onClick={handleCreateCollection}
+                      style={{ backgroundColor: "#FFD700", border: "none" }}
+                    >
+                      <Plus size={14} className="me-1" />
+                      Create
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
 
             {/* Collections List */}
-            <div className="mb-4">
-              <h6 className="fw-semibold mb-3">Select Collections ({selectedCollections.size} selected)</h6>
+            <div className="mb-3">
+              <h6 className="mb-3">Select Collections ({selectedCollections.length} selected)</h6>
               
-              {filteredCollections.length === 0 ? (
+              {loading ? (
+                <div className="text-center py-4">
+                  <div className="spinner-border spinner-border-sm" style={{ color: "#FFD700" }}></div>
+                  <p className="text-muted mt-2">Loading collections...</p>
+                </div>
+              ) : filteredCollections.length === 0 ? (
                 <div className="text-center py-4">
                   <Folder size={48} className="text-muted mb-3" />
                   <p className="text-muted">
-                    {searchQuery ? 'No collections match your search.' : 'No collections yet. Create your first one!'}
+                    {collections.length === 0 ? "No collections yet. Create your first one!" : "No collections match your search."}
                   </p>
                 </div>
               ) : (
-                <div className="list-group list-group-flush" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                  {filteredCollections.map((collection) => {
-                    const isSelected = selectedCollections.has(collection.id);
-                    
-                    return (
-                      <div key={collection.id} className="list-group-item border-0 px-0">
-                        <div className="d-flex align-items-start">
-                          <div className="form-check me-3 mt-1">
-                            <input
-                              className="form-check-input"
-                              type="checkbox"
-                              checked={isSelected}
-                              onChange={() => toggleCollection(collection.id)}
-                            />
-                          </div>
-                          
-                          <div className="flex-grow-1">
-                            <div className="d-flex align-items-center mb-2">
+                <div className="row g-3" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                  {filteredCollections.map((collection) => (
+                    <div key={collection.id} className="col-12">
+                      <div 
+                        className={`card border-2 ${selectedCollections.includes(collection.id) ? 'border-success bg-light' : 'border-light'}`}
+                        style={{ 
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onClick={() => toggleCollectionSelection(collection.id)}
+                      >
+                        <div className="card-body py-3">
+                          <div className="d-flex align-items-center justify-content-between">
+                            <div className="d-flex align-items-center">
                               <div 
-                                className="rounded-circle d-flex align-items-center justify-content-center me-2"
+                                className="rounded-circle d-flex align-items-center justify-content-center me-3"
                                 style={{ 
-                                  width: '32px', 
-                                  height: '32px',
+                                  width: '40px', 
+                                  height: '40px',
                                   backgroundColor: `${collection.color}20`,
                                   border: `2px solid ${collection.color}`
                                 }}
                               >
-                                <Folder size={14} style={{ color: collection.color }} />
+                                <Folder size={16} style={{ color: collection.color }} />
                               </div>
                               <div>
-                                <h6 className="mb-0 fw-semibold">{collection.name}</h6>
-                                <small className="text-muted">
+                                <h6 className="mb-1 fw-bold">{collection.name}</h6>
+                                <p className="mb-0 text-muted small">
                                   {collection.placesCount || 0} places
-                                </small>
+                                  {collection.description && ` • ${collection.description}`}
+                                </p>
                               </div>
                             </div>
                             
-                            {/* Additional options when selected */}
-                            {isSelected && (
-                              <div className="mt-3 p-3 bg-light rounded">
-                                {/* Visit Status */}
-                                <div className="form-check mb-3">
-                                  <input
-                                    className="form-check-input"
-                                    type="checkbox"
-                                    checked={isVisitedFlags[collection.id] || false}
-                                    onChange={(e) => setIsVisitedFlags({
-                                      ...isVisitedFlags,
-                                      [collection.id]: e.target.checked
-                                    })}
-                                  />
-                                  <label className="form-check-label fw-semibold text-success">
-                                    <CheckCircle2 size={16} className="me-1" />
-                                    I have visited this place
-                                  </label>
-                                </div>
-                                
-                                {/* Notes */}
-                                <div>
-                                  <label className="form-label small fw-semibold">
-                                    <StickyNote size={14} className="me-1" />
-                                    Personal Notes
-                                  </label>
-                                  <textarea
-                                    className="form-control form-control-sm"
-                                    rows="2"
-                                    placeholder="Add your thoughts, recommendations, or memories..."
-                                    value={placeNotes[collection.id] || ''}
-                                    onChange={(e) => setPlaceNotes({
-                                      ...placeNotes,
-                                      [collection.id]: e.target.value
-                                    })}
-                                  />
-                                </div>
-                              </div>
-                            )}
+                            <div className="form-check">
+                              <input
+                                className="form-check-input"
+                                type="checkbox"
+                                checked={selectedCollections.includes(collection.id)}
+                                onChange={() => toggleCollectionSelection(collection.id)}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>
-                    );
-                  })}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -523,16 +554,27 @@ export default function CollectionSelectorModal({
             <button 
               type="button" 
               className="btn text-dark fw-bold"
-              onClick={handleSaveChanges}
+              onClick={handleAddToSelectedCollections}
+              disabled={selectedCollections.length === 0 || adding}
               style={{ backgroundColor: "#FFD700", border: "none" }}
-              disabled={selectedCollections.size === 0}
             >
-              <Check size={16} className="me-2" />
-              Save Changes ({selectedCollections.size})
+              {adding ? (
+                <>
+                  <div className="spinner-border spinner-border-sm me-2"></div>
+                  Adding...
+                </>
+              ) : (
+                <>
+                  <Check size={16} className="me-2" />
+                  Add to {selectedCollections.length} Collection{selectedCollections.length !== 1 ? 's' : ''}
+                </>
+              )}
             </button>
           </div>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default CollectionSelectorModal;

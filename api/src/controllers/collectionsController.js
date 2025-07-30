@@ -12,7 +12,8 @@ const collectionsController = {
           coffeeShops: {
             include: {
               coffeeShop: true
-            }
+            },
+            orderBy: { order: 'asc' }
           }
         },
         orderBy: { createdAt: 'desc' }
@@ -28,7 +29,7 @@ const collectionsController = {
         dateCreated: collection.createdAt,
         dateModified: collection.updatedAt,
         placesCount: collection.coffeeShops.length,
-        visitedCount: collection.coffeeShops.filter(item => item.isVisited).length,
+        visitedCount: collection.coffeeShops.filter(item => item.isVisited || false).length,
         places: collection.coffeeShops.map(item => ({
           id: item.coffeeShop.id.toString(),
           placeId: item.coffeeShop.placeId,
@@ -38,19 +39,19 @@ const collectionsController = {
           website: item.coffeeShop.website,
           rating: item.coffeeShop.rating,
           priceLevel: item.coffeeShop.priceLevel,
-          category: 'coffee_shop',
-          cuisine: 'Coffee & Tea',
+          category: 'restaurant', // Default since DB doesn't have this field yet
+          cuisine: 'International', // Default since DB doesn't have this field yet
           description: item.coffeeShop.description,
           imageUrl: item.coffeeShop.imageUrl,
           latitude: item.coffeeShop.latitude,
           longitude: item.coffeeShop.longitude,
           distance: null,
           notes: item.notes,
-          isVisited: item.isVisited || false,
-          visitedDate: item.visitedDate,
+          isVisited: false, // Default since DB doesn't have this field yet
+          visitedDate: null, // Default since DB doesn't have this field yet
           dateAdded: item.createdAt,
-          personalRating: item.personalRating,
-          tags: item.tags,
+          personalRating: null, // Default since DB doesn't have this field yet
+          tags: null, // Default since DB doesn't have this field yet
           openingHours: item.coffeeShop.openingHours,
           amenities: item.coffeeShop.amenities
         }))
@@ -120,7 +121,7 @@ const collectionsController = {
         dateCreated: collection.createdAt,
         dateModified: collection.updatedAt,
         placesCount: collection.coffeeShops.length,
-        visitedCount: collection.coffeeShops.filter(item => item.isVisited).length,
+        visitedCount: collection.coffeeShops.filter(item => item.isVisited || false).length,
         canEdit: canEdit,
         creator: {
           username: collection.user.username,
@@ -135,19 +136,19 @@ const collectionsController = {
           website: item.coffeeShop.website,
           rating: item.coffeeShop.rating,
           priceLevel: item.coffeeShop.priceLevel,
-          category: 'coffee_shop',
-          cuisine: 'Coffee & Tea',
+          category: 'restaurant', // Default since DB doesn't have this field yet
+          cuisine: 'International', // Default since DB doesn't have this field yet
           description: item.coffeeShop.description,
           imageUrl: item.coffeeShop.imageUrl,
           latitude: item.coffeeShop.latitude,
           longitude: item.coffeeShop.longitude,
           distance: null,
           notes: canEdit ? item.notes : '', // Only show notes to owner
-          isVisited: canEdit ? (item.isVisited || false) : false,
-          visitedDate: canEdit ? item.visitedDate : null,
+          isVisited: false, // Default since DB doesn't have this field yet
+          visitedDate: null, // Default since DB doesn't have this field yet
           dateAdded: item.createdAt,
-          personalRating: canEdit ? item.personalRating : null,
-          tags: canEdit ? item.tags : null,
+          personalRating: null, // Default since DB doesn't have this field yet
+          tags: null, // Default since DB doesn't have this field yet
           openingHours: item.coffeeShop.openingHours,
           amenities: item.coffeeShop.amenities
         }))
@@ -320,7 +321,7 @@ const collectionsController = {
     }
   },
 
-  // Add a place to a collection
+  // Add a place to a collection (FIXED - removes problematic fields)
   addPlaceToCollection: async (req, res) => {
     try {
       const collectionId = parseInt(req.params.collectionId);
@@ -339,9 +340,13 @@ const collectionsController = {
         description,
         openingHours,
         amenities,
+        category,  // We receive this but don't save to DB yet
+        cuisine,   // We receive this but don't save to DB yet
         notes,
-        isVisited
+        isVisited  // We receive this but don't save to DB yet
       } = req.body;
+
+      console.log('🔄 Adding place to collection:', { collectionId, placeName: name });
 
       // Verify collection belongs to user
       const collection = await prisma.userCollection.findFirst({
@@ -358,34 +363,92 @@ const collectionsController = {
         });
       }
 
-      // Find or create the coffee shop
+      console.log('✅ Collection found:', collection.name);
+
+      // Use the provided placeId or id as the unique identifier
+      const placeIdentifier = placeId || id?.toString();
+      
+      if (!placeIdentifier) {
+        return res.status(400).json({
+          success: false,
+          message: 'Place ID is required'
+        });
+      }
+
+      console.log('🔍 Looking for existing coffee shop with placeId:', placeIdentifier);
+
+      // Find or create the coffee shop/food place
       let coffeeShop = await prisma.coffeeShop.findFirst({
         where: { 
-          placeId: placeId || id?.toString()
+          placeId: placeIdentifier
         }
       });
 
       if (!coffeeShop) {
-        coffeeShop = await prisma.coffeeShop.create({
-          data: {
-            placeId: placeId || id?.toString(),
-            name: name.trim(),
-            address: address || '',
-            latitude: parseFloat(latitude) || 0,
-            longitude: parseFloat(longitude) || 0,
-            phone: phone || null,
-            website: website || null,
-            rating: rating ? parseFloat(rating) : null,
-            priceLevel: priceLevel ? parseInt(priceLevel) : null,
-            imageUrl: imageUrl || null,
-            description: description || null,
-            openingHours: openingHours || null,
-            amenities: amenities || null,
-            source: 'Manual'
+        console.log('🆕 Creating new coffee shop entry...');
+        
+        try {
+          // Create with only fields that exist in current DB schema
+          coffeeShop = await prisma.coffeeShop.create({
+            data: {
+              placeId: placeIdentifier,
+              name: name.trim(),
+              address: address || '',
+              latitude: parseFloat(latitude) || 0,
+              longitude: parseFloat(longitude) || 0,
+              phone: phone || null,
+              website: website || null,
+              rating: rating ? parseFloat(rating) : null,
+              priceLevel: priceLevel ? parseInt(priceLevel) : null,
+              imageUrl: imageUrl || null,
+              description: description || null,
+              openingHours: openingHours || null,
+              amenities: amenities || null,
+              source: 'FoodPlaceDetails'
+              // REMOVED: category and cuisine (don't exist in DB yet)
+            }
+          });
+          
+          console.log('✅ Created coffee shop with ID:', coffeeShop.id);
+        } catch (createError) {
+          console.error('❌ Error creating coffee shop:', createError);
+          throw createError;
+        }
+      } else {
+        console.log('📍 Found existing coffee shop:', coffeeShop.name);
+        
+        // Update existing coffee shop with any new information
+        const updateData = {};
+        if (name && name.trim() !== coffeeShop.name) updateData.name = name.trim();
+        if (address && address !== coffeeShop.address) updateData.address = address;
+        if (phone && phone !== coffeeShop.phone) updateData.phone = phone;
+        if (website && website !== coffeeShop.website) updateData.website = website;
+        if (rating && parseFloat(rating) !== coffeeShop.rating) updateData.rating = parseFloat(rating);
+        if (priceLevel && parseInt(priceLevel) !== coffeeShop.priceLevel) updateData.priceLevel = parseInt(priceLevel);
+        if (imageUrl && imageUrl !== coffeeShop.imageUrl) updateData.imageUrl = imageUrl;
+        if (description && description !== coffeeShop.description) updateData.description = description;
+        if (latitude && parseFloat(latitude) !== coffeeShop.latitude) updateData.latitude = parseFloat(latitude);
+        if (longitude && parseFloat(longitude) !== coffeeShop.longitude) updateData.longitude = parseFloat(longitude);
+        if (openingHours && JSON.stringify(openingHours) !== JSON.stringify(coffeeShop.openingHours)) updateData.openingHours = openingHours;
+        if (amenities && JSON.stringify(amenities) !== JSON.stringify(coffeeShop.amenities)) updateData.amenities = amenities;
+        // REMOVED: category and cuisine updates (don't exist in DB yet)
+
+        if (Object.keys(updateData).length > 0) {
+          console.log('🔄 Updating coffee shop with new data:', Object.keys(updateData));
+          try {
+            coffeeShop = await prisma.coffeeShop.update({
+              where: { id: coffeeShop.id },
+              data: updateData
+            });
+          } catch (updateError) {
+            console.error('❌ Error updating coffee shop:', updateError);
+            throw updateError;
           }
-        });
+        }
       }
 
+      console.log('🔍 Checking if place already exists in collection...');
+      
       // Check if place is already in collection
       const existingPlace = await prisma.collectionCoffeeShop.findFirst({
         where: {
@@ -395,23 +458,62 @@ const collectionsController = {
       });
 
       if (existingPlace) {
-        return res.status(400).json({
+        console.log('⚠️ Place already exists in collection');
+        return res.status(409).json({
           success: false,
           message: 'Place already exists in this collection'
         });
       }
 
-      // Add place to collection
-      const collectionPlace = await prisma.collectionCoffeeShop.create({
-        data: {
-          collectionId: collection.id,
-          coffeeShopId: coffeeShop.id,
-          notes: notes || '',
-          isVisited: isVisited || false,
-          visitedDate: isVisited ? new Date() : null,
-          order: 0
-        }
+      console.log('📊 Getting current maximum order...');
+      
+      // Get the current maximum order for proper ordering
+      const maxOrderResult = await prisma.collectionCoffeeShop.findFirst({
+        where: { collectionId: collection.id },
+        orderBy: { order: 'desc' },
+        select: { order: true }
       });
+
+      const nextOrder = (maxOrderResult?.order || 0) + 1;
+      console.log('📝 Next order will be:', nextOrder);
+
+      console.log('💾 Creating collection place entry...');
+      
+      // Add place to collection with only fields that exist in current DB schema
+      let collectionPlace;
+      try {
+        collectionPlace = await prisma.collectionCoffeeShop.create({
+          data: {
+            collectionId: collection.id,
+            coffeeShopId: coffeeShop.id,
+            notes: notes || '',
+            order: nextOrder
+            // REMOVED: isVisited, visitedDate (don't exist in DB yet)
+          }
+        });
+
+        console.log('✅ Created collection place entry with ID:', collectionPlace.id);
+      } catch (collectionPlaceError) {
+        console.error('❌ Error creating collection place entry:', collectionPlaceError);
+        throw collectionPlaceError;
+      }
+
+      console.log('📊 Updating collection timestamp...');
+      
+      // Update collection timestamp
+      try {
+        await prisma.userCollection.update({
+          where: { id: collection.id },
+          data: {
+            updatedAt: new Date()
+          }
+        });
+      } catch (timestampError) {
+        console.error('❌ Error updating timestamp (non-critical):', timestampError);
+        // Don't throw, it's not critical
+      }
+
+      console.log('✅ Successfully added place to collection!');
 
       res.status(201).json({
         success: true,
@@ -421,17 +523,204 @@ const collectionsController = {
           placeId: coffeeShop.placeId,
           name: coffeeShop.name,
           address: coffeeShop.address,
+          phone: coffeeShop.phone,
+          website: coffeeShop.website,
+          rating: coffeeShop.rating,
+          priceLevel: coffeeShop.priceLevel,
+          category: category || 'restaurant', // Return to frontend but not saved to DB
+          cuisine: cuisine || 'International', // Return to frontend but not saved to DB
+          description: coffeeShop.description,
+          imageUrl: coffeeShop.imageUrl,
+          latitude: coffeeShop.latitude,
+          longitude: coffeeShop.longitude,
+          openingHours: coffeeShop.openingHours,
+          amenities: coffeeShop.amenities,
           notes: collectionPlace.notes,
-          isVisited: collectionPlace.isVisited,
-          visitedDate: collectionPlace.visitedDate,
+          isVisited: isVisited || false, // Return to frontend but not saved to DB
+          visitedDate: null,
           dateAdded: collectionPlace.createdAt
         }
       });
     } catch (error) {
-      console.error('Error adding place to collection:', error);
+      console.error('❌ CRITICAL ERROR in addPlaceToCollection:', error);
+      console.error('🔍 Error stack:', error.stack);
+      
       res.status(500).json({
         success: false,
         message: 'Error adding place to collection',
+        error: error.message
+      });
+    }
+  },
+
+  // Batch add places to multiple collections (FIXED SYNTAX)
+  batchAddPlaceToCollections: async (req, res) => {
+    try {
+      const {
+        collectionIds,
+        place
+      } = req.body;
+
+      if (!collectionIds || !Array.isArray(collectionIds) || collectionIds.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Collection IDs are required'
+        });
+      }
+
+      if (!place || !place.name) {
+        return res.status(400).json({
+          success: false,
+          message: 'Place data is required'
+        });
+      }
+
+      console.log('📦 Batch adding place to', collectionIds.length, 'collections:', place.name);
+
+      const results = [];
+      const failures = [];
+
+      for (const collectionId of collectionIds) {
+        try {
+          // Verify collection belongs to user
+          const collection = await prisma.userCollection.findFirst({
+            where: { 
+              id: parseInt(collectionId),
+              userId: req.user.id 
+            }
+          });
+
+          if (!collection) {
+            failures.push({
+              collectionId,
+              error: 'Collection not found or access denied'
+            });
+            continue;
+          }
+
+          // Use the provided placeId or id as the unique identifier
+          const placeIdentifier = place.placeId || place.id?.toString();
+          
+          if (!placeIdentifier) {
+            failures.push({
+              collectionId,
+              error: 'Place ID is required'
+            });
+            continue;
+          }
+
+          // Find or create the coffee shop/food place
+          let coffeeShop = await prisma.coffeeShop.findFirst({
+            where: { 
+              placeId: placeIdentifier
+            }
+          });
+
+          if (!coffeeShop) {
+            coffeeShop = await prisma.coffeeShop.create({
+              data: {
+                placeId: placeIdentifier,
+                name: place.name.trim(),
+                address: place.address || '',
+                latitude: parseFloat(place.latitude) || 0,
+                longitude: parseFloat(place.longitude) || 0,
+                phone: place.phone || null,
+                website: place.website || null,
+                rating: place.rating ? parseFloat(place.rating) : null,
+                priceLevel: place.priceLevel ? parseInt(place.priceLevel) : null,
+                imageUrl: place.imageUrl || null,
+                description: place.description || null,
+                openingHours: place.openingHours || null,
+                amenities: place.amenities || null,
+                source: 'BatchAdd'
+                // REMOVED: category and cuisine (don't exist in DB yet)
+              }
+            });
+          }
+
+          // Check if place is already in collection
+          const existingPlace = await prisma.collectionCoffeeShop.findFirst({
+            where: {
+              collectionId: collection.id,
+              coffeeShopId: coffeeShop.id
+            }
+          });
+
+          if (existingPlace) {
+            results.push({
+              collectionId,
+              collectionName: collection.name,
+              status: 'already_exists',
+              message: 'Place already in collection'
+            });
+            continue;
+          }
+
+          // Get the current maximum order for proper ordering
+          const maxOrderResult = await prisma.collectionCoffeeShop.findFirst({
+            where: { collectionId: collection.id },
+            orderBy: { order: 'desc' },
+            select: { order: true }
+          });
+
+          const nextOrder = (maxOrderResult?.order || 0) + 1;
+
+          // Add place to collection
+          await prisma.collectionCoffeeShop.create({
+            data: {
+              collectionId: collection.id,
+              coffeeShopId: coffeeShop.id,
+              notes: '',
+              order: nextOrder
+              // REMOVED: isVisited, visitedDate (don't exist in DB yet)
+            }
+          });
+
+          // Update collection timestamp
+          await prisma.userCollection.update({
+            where: { id: collection.id },
+            data: {
+              updatedAt: new Date()
+            }
+          });
+
+          results.push({
+            collectionId,
+            collectionName: collection.name,
+            status: 'added',
+            message: 'Successfully added to collection'
+          });
+
+        } catch (collectionError) {
+          console.error(`❌ Error adding to collection ${collectionId}:`, collectionError);
+          failures.push({
+            collectionId,
+            error: collectionError.message
+          });
+        }
+      }
+
+      const successCount = results.filter(r => r.status === 'added').length;
+      const alreadyExistsCount = results.filter(r => r.status === 'already_exists').length;
+
+      res.json({
+        success: true,
+        message: `Place processing complete: ${successCount} added, ${alreadyExistsCount} already existed, ${failures.length} failed`,
+        results,
+        failures,
+        summary: {
+          total: collectionIds.length,
+          added: successCount,
+          alreadyExists: alreadyExistsCount,
+          failed: failures.length
+        }
+      });
+
+    } catch (error) {
+      console.error('❌ Error in batch add place to collections:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error adding place to collections',
         error: error.message
       });
     }
@@ -442,7 +731,7 @@ const collectionsController = {
     try {
       const collectionId = parseInt(req.params.collectionId);
       const placeId = req.params.placeId;
-      const { notes, isVisited, personalRating, tags } = req.body;
+      const { notes } = req.body; // Only use notes for now
 
       // Verify collection belongs to user
       const collection = await prisma.userCollection.findFirst({
@@ -493,12 +782,7 @@ const collectionsController = {
 
       const updateData = {};
       if (notes !== undefined) updateData.notes = notes;
-      if (isVisited !== undefined) {
-        updateData.isVisited = isVisited;
-        updateData.visitedDate = isVisited ? new Date() : null;
-      }
-      if (personalRating !== undefined) updateData.personalRating = personalRating;
-      if (tags !== undefined) updateData.tags = tags;
+      // REMOVED: isVisited, personalRating, tags (don't exist in DB yet)
 
       const updatedPlace = await prisma.collectionCoffeeShop.update({
         where: { id: collectionPlace.id },
@@ -513,10 +797,10 @@ const collectionsController = {
           placeId: coffeeShop.placeId,
           name: coffeeShop.name,
           notes: updatedPlace.notes,
-          isVisited: updatedPlace.isVisited,
-          visitedDate: updatedPlace.visitedDate,
-          personalRating: updatedPlace.personalRating,
-          tags: updatedPlace.tags
+          isVisited: false, // Default
+          visitedDate: null, // Default
+          personalRating: null, // Default
+          tags: null // Default
         }
       });
     } catch (error) {
@@ -637,7 +921,7 @@ const collectionsController = {
         description: collection.description,
         color: collection.color || '#FFD700',
         placesCount: collection.coffeeShops.length,
-        visitedCount: collection.coffeeShops.filter(item => item.isVisited).length,
+        visitedCount: 0, // Default since DB doesn't have isVisited field yet
         dateCreated: collection.createdAt,
         creator: {
           username: collection.user.username,

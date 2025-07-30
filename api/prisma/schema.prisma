@@ -5,28 +5,27 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  //relationMode = "prisma"
 }
 
 model User {
-  id           Int                @id @default(autoincrement())
-  username     String             @unique
-  email        String             @unique
-  password     String
-  name         String?
-  preferences  Json?              // Store user preferences like preferred unit (km/miles), search radius
-  favorites    UserFavorite[]
-  reviews      UserReview[]
-  visits       CoffeeShopVisit[]
-  collections  UserCollection[]
+  id            Int               @id @default(autoincrement())
+  username      String            @unique
+  email         String            @unique
+  password      String
+  name          String?
+  preferences   Json?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  visits        CoffeeShopVisit[]
   searchHistory SearchHistory[]
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
+  collections   UserCollection[]
+  favorites     UserFavorite[]
+  reviews       UserReview[]
 }
 
 model CoffeeShop {
-  id           Int                           @id @default(autoincrement())
-  placeId      String                        @unique // Geoapify place ID
+  id           Int                         @id @default(autoincrement())
+  placeId      String                      @unique
   name         String
   address      String
   latitude     Float
@@ -35,22 +34,22 @@ model CoffeeShop {
   website      String?
   imageUrl     String?
   rating       Float?
-  priceLevel   Int?                          // 1-4 price scale
-  openingHours Json?                         // Store opening hours as JSON
-  amenities    Json?                         // WiFi, outdoor seating, drive-thru, etc.
+  priceLevel   Int?
+  openingHours Json?
+  amenities    Json?
   description  String?
   city         String?
   state        String?
   country      String?
-  source       String                        @default("Geoapify")
-  isVerified   Boolean                       @default(false) // For admin verification
+  source       String                      @default("Geoapify")
+  isVerified   Boolean                     @default(false)
+  createdAt    DateTime                    @default(now())
+  updatedAt    DateTime                    @updatedAt
+  categories   CoffeeShopCategoryMapping[]
+  visits       CoffeeShopVisit[]
+  collections  CollectionCoffeeShop[]
   favorites    UserFavorite[]
   reviews      UserReview[]
-  visits       CoffeeShopVisit[]
-  categories   CoffeeShopCategoryMapping[]
-  collections  CollectionCoffeeShop[]
-  createdAt    DateTime                      @default(now())
-  updatedAt    DateTime                      @updatedAt
 
   @@index([latitude, longitude])
   @@index([city])
@@ -61,10 +60,10 @@ model UserFavorite {
   id           Int        @id @default(autoincrement())
   userId       Int
   coffeeShopId Int
-  notes        String?    // Personal notes about the coffee shop
-  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  coffeeShop   CoffeeShop @relation(fields: [coffeeShopId], references: [id], onDelete: Cascade)
+  notes        String?
   createdAt    DateTime   @default(now())
+  coffeeShop   CoffeeShop @relation(fields: [coffeeShopId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, coffeeShopId])
 }
@@ -73,31 +72,31 @@ model UserReview {
   id            Int        @id @default(autoincrement())
   userId        Int
   coffeeShopId  Int
-  rating        Int        // 1-5 stars
+  rating        Int
   title         String?
   comment       String?
   visitDate     DateTime?
   isRecommended Boolean    @default(true)
-  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  coffeeShop    CoffeeShop @relation(fields: [coffeeShopId], references: [id], onDelete: Cascade)
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
+  coffeeShop    CoffeeShop @relation(fields: [coffeeShopId], references: [id], onDelete: Cascade)
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, coffeeShopId])
 }
 
 model SearchHistory {
   id           Int      @id @default(autoincrement())
-  userId       Int?     // Optional for anonymous searches
+  userId       Int?
   location     String
   latitude     Float?
   longitude    Float?
   radius       Float
-  unit         String   // 'km' or 'miles'
+  unit         String
   resultsCount Int      @default(0)
-  ipAddress    String?  // For anonymous tracking
-  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  ipAddress    String?
   createdAt    DateTime @default(now())
+  user         User?    @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([createdAt])
@@ -109,33 +108,33 @@ model CoffeeShopVisit {
   coffeeShopId Int
   visitDate    DateTime   @default(now())
   notes        String?
-  photoUrls    Json?      // Array of photo URLs
-  rating       Int?       // Quick rating 1-5
-  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  coffeeShop   CoffeeShop @relation(fields: [coffeeShopId], references: [id], onDelete: Cascade)
+  photoUrls    Json?
+  rating       Int?
   createdAt    DateTime   @default(now())
+  coffeeShop   CoffeeShop @relation(fields: [coffeeShopId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([coffeeShopId])
 }
 
 model CoffeeShopCategory {
-  id          Int                           @id @default(autoincrement())
-  name        String                        @unique
+  id          Int                         @id @default(autoincrement())
+  name        String                      @unique
   description String?
-  color       String?                       // For UI display
-  icon        String?                       // Icon name or URL
+  color       String?
+  icon        String?
+  createdAt   DateTime                    @default(now())
   coffeeShops CoffeeShopCategoryMapping[]
-  createdAt   DateTime                      @default(now())
 }
 
 model CoffeeShopCategoryMapping {
   id           Int                @id @default(autoincrement())
   coffeeShopId Int
   categoryId   Int
-  coffeeShop   CoffeeShop         @relation(fields: [coffeeShopId], references: [id], onDelete: Cascade)
-  category     CoffeeShopCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   createdAt    DateTime           @default(now())
+  category     CoffeeShopCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  coffeeShop   CoffeeShop         @relation(fields: [coffeeShopId], references: [id], onDelete: Cascade)
 
   @@unique([coffeeShopId, categoryId])
 }
@@ -146,14 +145,12 @@ model UserCollection {
   name        String
   description String?
   isPublic    Boolean                @default(false)
-  color       String?                // For UI theming
-  user        User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  coffeeShops CollectionCoffeeShop[]
+  color       String?
   createdAt   DateTime               @default(now())
   updatedAt   DateTime               @updatedAt
+  coffeeShops CollectionCoffeeShop[]
+  user        User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
-
-// Updated schema.prisma - Add these fields to CollectionCoffeeShop model
 
 model CollectionCoffeeShop {
   id           Int            @id @default(autoincrement())
@@ -161,28 +158,9 @@ model CollectionCoffeeShop {
   coffeeShopId Int
   notes        String?
   order        Int            @default(0)
-  isVisited    Boolean        @default(false)  // NEW: Track if user has visited
-  visitedDate  DateTime?                       // NEW: When they visited
-  personalRating Int?                          // NEW: Personal rating (1-5)
-  tags         Json?                           // NEW: Personal tags
-  collection   UserCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
-  coffeeShop   CoffeeShop     @relation(fields: [coffeeShopId], references: [id], onDelete: Cascade)
   createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt       // NEW: Track updates
+  coffeeShop   CoffeeShop     @relation(fields: [coffeeShopId], references: [id], onDelete: Cascade)
+  collection   UserCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
 
   @@unique([collectionId, coffeeShopId])
 }
-
-// Migration SQL to add the new fields (run this with: npx prisma db push or create a migration)
-/*
--- Add new columns to collection_coffee_shop table
-ALTER TABLE "CollectionCoffeeShop" 
-ADD COLUMN "isVisited" BOOLEAN NOT NULL DEFAULT false,
-ADD COLUMN "visitedDate" TIMESTAMP(3),
-ADD COLUMN "personalRating" INTEGER,
-ADD COLUMN "tags" JSONB,
-ADD COLUMN "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
-
--- Update existing records to have updatedAt = createdAt
-UPDATE "CollectionCoffeeShop" SET "updatedAt" = "createdAt";
-*/

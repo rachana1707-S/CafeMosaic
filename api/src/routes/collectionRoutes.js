@@ -1,3 +1,5 @@
+
+
 // routes/collectionRoutes.js
 import express from 'express';
 import { body } from 'express-validator';
@@ -63,6 +65,11 @@ const addPlaceValidation = [
     .trim()
     .notEmpty()
     .withMessage('Place ID cannot be empty if provided'),
+  body('id')
+    .optional()
+    .trim()
+    .notEmpty()
+    .withMessage('ID cannot be empty if provided'),
   body('address')
     .optional()
     .trim(),
@@ -99,6 +106,19 @@ const addPlaceValidation = [
     .optional()
     .isFloat({ min: -180, max: 180 })
     .withMessage('Longitude must be between -180 and 180'),
+  body('imageUrl')
+    .optional()
+    .isURL()
+    .withMessage('Image URL must be valid'),
+  body('description')
+    .optional()
+    .trim(),
+  body('category')
+    .optional()
+    .trim(),
+  body('cuisine')
+    .optional()
+    .trim(),
   body('notes')
     .optional()
     .trim()
@@ -108,6 +128,30 @@ const addPlaceValidation = [
     .optional()
     .isBoolean()
     .withMessage('isVisited must be a boolean value')
+];
+
+const batchAddPlaceValidation = [
+  body('collectionIds')
+    .isArray()
+    .withMessage('Collection IDs must be an array'),
+  body('collectionIds.*')
+    .isString()
+    .withMessage('Each collection ID must be a string'),
+  body('place')
+    .isObject()
+    .withMessage('Place data is required'),
+  body('place.name')
+    .notEmpty()
+    .withMessage('Place name is required'),
+  body('place.address')
+    .optional()
+    .isString(),
+  body('place.placeId')
+    .optional()
+    .isString(),
+  body('place.id')
+    .optional()
+    .isString()
 ];
 
 const updatePlaceValidation = [
@@ -122,21 +166,23 @@ const updatePlaceValidation = [
     .withMessage('isVisited must be a boolean value'),
   body('personalRating')
     .optional()
-    .isInt({ min: 1, max: 5 })
-    .withMessage('Personal rating must be between 1 and 5'),
+    .isFloat({ min: 0, max: 5 })
+    .withMessage('Personal rating must be between 0 and 5'),
   body('tags')
     .optional()
     .isArray()
     .withMessage('Tags must be an array')
 ];
 
-// Public routes (with rate limiting)
+// ==================== PUBLIC ROUTES ====================
+// Public routes (with rate limiting) - NO AUTHENTICATION REQUIRED
 router.get('/public', 
   rateLimitMiddleware(50, 15 * 60 * 1000), // 50 requests per 15 minutes
   collectionsController.getPublicCollections
 );
 
-// Protected routes (require authentication)
+// ==================== PROTECTED ROUTES ====================
+// All routes below require authentication
 router.use(authMiddleware);
 
 // Collection CRUD routes
@@ -162,18 +208,27 @@ router.delete('/:collectionId',
   collectionsController.deleteCollection
 );
 
-// Collection places routes (require collection ownership)
+// ==================== PLACE ROUTES ====================
+// Add place to specific collection
 router.post('/:collectionId/places', 
   addPlaceValidation,
   validateCoffeeShopData,
   collectionsController.addPlaceToCollection
 );
 
+// Batch add place to multiple collections
+router.post('/batch/add-place', 
+  batchAddPlaceValidation,
+  collectionsController.batchAddPlaceToCollections
+);
+
+// Update place in collection
 router.put('/:collectionId/places/:placeId', 
   updatePlaceValidation,
   collectionsController.updatePlaceInCollection
 );
 
+// Remove place from collection
 router.delete('/:collectionId/places/:placeId', 
   collectionsController.removePlaceFromCollection
 );
