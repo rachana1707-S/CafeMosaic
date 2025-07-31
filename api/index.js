@@ -12,6 +12,7 @@ import collectionRoutes from './src/routes/collectionRoutes.js';
 import reviewRoutes from './src/routes/reviewRoutes.js';
 import favoriteRoutes from './src/routes/favoriteRoutes.js';
 import categoryRoutes from './src/routes/categoryRoutes.js';
+import userRoutes from './src/routes/userRoutes.js';
 
 // Import middleware
 import globalErrorHandler, { 
@@ -136,8 +137,9 @@ app.use('/api/coffee-shops', coffeeShopRoutes); // Coffee shop CRUD
 app.use('/api/collections', collectionRoutes); // User collections
 app.use('/api/reviews', reviewRoutes); // Reviews and ratings
 app.use('/api/favorites', favoriteRoutes); // User favorites
-
+app.use('/api/users', userRoutes);
 app.use('/api/categories', categoryRoutes); // Coffee shop categories
+
 
 // ✅ 404 handler for undefined routes
 app.all('*', notFoundHandler);
@@ -188,5 +190,6 @@ process.on('SIGINT', () => {
     console.log('✅ Server closed. Process terminated.');
   });
 });
+
 
 export default app;
