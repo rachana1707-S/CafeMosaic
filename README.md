@@ -31,19 +31,26 @@ FoodSocial is a comprehensive social networking platform designed specifically f
 ## 📸 Screenshots
 
 ### Main Feed
-![Main Feed](screenshots/main-feed.png)
+![Main Feed](screenshots/main1.png)
+![Main Feed](screenshots/main2.png)
+![Main Feed](screenshots/main3.png)
 *Discover delicious posts from your network*
 
 ### Restaurant Discovery
-![Restaurant Discovery](screenshots/restaurant-discovery.png)
+![Restaurant Discovery](screenshots/restaurant1-discovery.png)
+![Restaurant Discovery](screenshots/restaurant2-discovery.png)
+![Restaurant Discovery](screenshots/restaurant3-discovery.png)
 *Find and explore local restaurants*
 
 ### User Profile
-![User Profile](screenshots/user-profile.png)
+![User Profile](screenshots/collection.png)
+![User Profile](screenshots/fav.png)
 *Showcase your culinary journey*
 
 ### Mobile Experience
-![Mobile View](screenshots/mobile-view.png)
+![Mobile View](screenshots/mobile1.png)
+![Mobile View](screenshots/mobile2.png)
+
 *Seamless mobile experience*
 
 ## 🛠️ Technologies Used
