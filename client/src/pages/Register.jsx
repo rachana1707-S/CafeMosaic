@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthUser } from "../context/AuthContext";
 import { User, Mail, Lock, Eye, EyeOff, UserPlus, ArrowRight, ArrowLeft } from "lucide-react";
-import backgroundImage from "../assets/food_backgroundD.avif"; // Your food background
+import backgroundImage from "../assets/food_backgroundd.avif"; // Your food background
 
 export default function Register() {
   const navigate = useNavigate();
