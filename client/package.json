@@ -10,7 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@googlemaps/js-api-loader": "^1.16.10",
     "@popperjs/core": "^2.11.8",
+    "@react-google-maps/api": "^2.20.7",
     "axios": "^1.8.4",
     "bootstrap": "^5.3.3",
     "lucide-react": "^0.536.0",
