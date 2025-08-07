@@ -39,9 +39,9 @@ const allowedOrigins = [
   'http://localhost:5174', // In case you use a different port
   'http://127.0.0.1:5173', // Sometimes localhost resolves to 127.0.0.1
   process.env.CLIENT_URL,
-  process.env.FRONTEND_URL,
+  process.env.CLIENT_URL,
   'https://coffee-shop-finder.vercel.app', // Update with your actual domain
-  'https://your-coffee-app.netlify.app',   // Update with your actual domain
+  'https://6893a48f707e8543bf8142ca--foodsocialapp.netlify.app/',   // Update with your actual domain
 ].filter(Boolean); // Remove undefined values
 
 // ✅ CORS options with enhanced logging
