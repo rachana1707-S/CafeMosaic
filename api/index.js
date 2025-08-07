@@ -106,7 +106,7 @@ if (process.env.NODE_ENV === 'development') {
 app.get('/', (req, res) => {
   res.json({
     success: true,
-    message: '☕ CafeMosaic API is running!',
+    message: '☕ foodsocial API is running!',
     version: '1.0.0',
     environment: process.env.NODE_ENV || 'development',
     timestamp: new Date().toISOString(),
@@ -148,7 +148,7 @@ app.use(globalErrorHandler);
 
 // ✅ Start server with enhanced logging
 const server = app.listen(PORT, () => {
-  console.log('🚀 CafeMosaic API Server Started');
+  console.log('🚀 foodsocial API Server Started');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log(`🌐 Server URL: http://localhost:${PORT}`);
   console.log(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
