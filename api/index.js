@@ -36,14 +36,13 @@ const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5173',
-  'http://localhost:5174', // In case you use a different port
-  'http://127.0.0.1:5173', // Sometimes localhost resolves to 127.0.0.1
+  'http://localhost:5174',
+  'http://127.0.0.1:5173',
   process.env.CLIENT_URL,
-  process.env.CLIENT_URL,
-  'https://foodsocial.onrender.com', // Update with your actual domain
-  'https://6893a48f707e8543bf8142ca--foodsocialapp.netlify.app/',   // Update with your actual domain
-].filter(Boolean); // Remove undefined values
-
+  'https://foodsocial.onrender.com',
+  'https://foodsocialapp.netlify.app',  // Add this exact URL (no trailing slash)
+  'https://6893a48f707e8543bf8142ca--foodsocialapp.netlify.app', // Remove trailing slash here too
+].filter(Boolean);
 // ✅ CORS options with enhanced logging
 const corsOptions = {
   origin: function (origin, callback) {
