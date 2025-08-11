@@ -4,29 +4,31 @@ A modern social media platform focused on food sharing, restaurant reviews, and 
 
 [![React](https://img.shields.io/badge/React-18.0+-blue.svg)](https://reactjs.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-16.0+-green.svg)](https://nodejs.org/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-Latest-brightgreen.svg)](https://mongodb.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Latest-blue.svg)](https://postgresql.org/)
+[![Prisma](https://img.shields.io/badge/Prisma-Latest-brightgreen.svg)](https://prisma.io/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ## 🎯 Project Overview
 
-FoodSocial is a comprehensive social networking platform designed specifically for food lovers. Users can share photos of their meals, write restaurant reviews, follow other food enthusiasts, and discover new culinary experiences in their area. The platform combines social media functionality with location-based restaurant discovery and food recommendation systems.
+FoodSocial is a comprehensive social networking platform designed specifically for food lovers. Users can share photos of their meals, write restaurant reviews, follow other food enthusiasts, and discover new culinary experiences in their area. The platform combines social media functionality with location-based restaurant discovery using real-world data from external APIs.
 
 ### ✨ Key Features
 
 - **📸 Photo Sharing**: Share beautiful photos of your meals and culinary creations
 - **⭐ Restaurant Reviews**: Write and read detailed restaurant reviews and ratings
 - **👥 Social Network**: Follow friends and food influencers, build your culinary network
-- **📍 Location Discovery**: Find nearby restaurants and food experiences
-- **🏷️ Smart Tagging**: Tag dishes, cuisines, and ingredients for better discovery
+- **📍 Location Discovery**: Find nearby restaurants using Geoapify API with real-world data
+- **🏷️ Smart Categorization**: Browse restaurants by cuisine categories from Geoapify
 - **💬 Interactive Comments**: Engage with posts through likes, comments, and shares
 - **🔍 Advanced Search**: Find specific dishes, restaurants, or users
+- **🗺️ Interactive Maps**: Visual restaurant discovery with integrated mapping
 - **📱 Mobile Responsive**: Optimized experience across all devices
 - **🔔 Real-time Notifications**: Stay updated on activity in your network
-- **🍳 Recipe Sharing**: Share and discover new recipes from the community
+- **📚 Collections**: Create and manage personalized restaurant collections
 
 ## 🚀 Live Demo
 
-[🌐 View Live Application](https://foodsocial-demo.netlify.app) <!-- Replace with actual URL -->
+[🌐 View Live Application](https://foodsocialapp.netlify.app)
 
 ## 📸 Screenshots
 
@@ -40,7 +42,7 @@ FoodSocial is a comprehensive social networking platform designed specifically f
 ![Restaurant Discovery](client/src/screenshots/restaurant1-discovery.png)
 ![Restaurant Discovery](client/src/screenshots/restaurant2-discovery.png)
 ![Restaurant Discovery](client/src/screenshots/restaurant3-discovery.png)
-*Find and explore local restaurants*
+*Find and explore local restaurants with real-world data*
 
 ### User Profile
 ![User Profile](client/src/screenshots/collection.png)
@@ -57,93 +59,160 @@ FoodSocial is a comprehensive social networking platform designed specifically f
 
 ### Frontend
 - **⚛️ React 18**: Modern UI library with hooks
-- **🎨 Styled Components**: CSS-in-JS styling solution
+- **🎨 Tailwind CSS**: Utility-first CSS framework
 - **🚦 React Router**: Client-side routing
 - **📋 React Hook Form**: Form handling and validation
 - **🔄 React Query**: Server state management
-- **📱 Material-UI**: Component library for consistent design
-- **📍 Mapbox GL**: Interactive maps for location features
+- **🗺️ React Maps**: Interactive maps integration
+- **🎭 Lucide React**: Beautiful icon library
 
 ### Backend
 - **🟢 Node.js**: JavaScript runtime environment
 - **🚀 Express.js**: Web application framework
-- **🍃 MongoDB**: NoSQL database for flexible data storage
+- **🐘 PostgreSQL**: Robust relational database
+- **🔷 Prisma ORM**: Type-safe database access
 - **🔐 JWT**: JSON Web Tokens for authentication
 - **☁️ Cloudinary**: Image upload and management
 - **📧 Nodemailer**: Email service integration
-- **🔍 Algolia**: Search functionality
+
+### External APIs & Services
+- **🌍 Geoapify API**: Real-world restaurant data and location services
+- **📍 Geoapify Categories**: Restaurant categorization and filtering
+- **🗺️ Geoapify Maps**: Interactive mapping and geolocation
+- **🔍 Geoapify Places**: Restaurant search and discovery
 
 ### Development Tools
-- **📦 npm/yarn**: Package management
-- **🔨 Webpack**: Module bundling
+- **📦 npm**: Package management
+- **⚡ Vite**: Fast build tool and development server
 - **🎯 ESLint**: Code linting and formatting
-- **🧪 Jest**: Testing framework
+- **🧪 Vitest**: Testing framework
 - **🐳 Docker**: Containerization (optional)
 
 ## 🏗️ Project Structure
 
 ```
-FoodSocial/
+FOODSOCIAL/
 ├── client/                     # React frontend application
+│   ├── .vite/
+│   │   └── deps/              # Vite dependencies
 │   ├── public/
-│   │   ├── index.html
-│   │   └── favicon.ico
+│   │   └── assets/            # Public static assets
+│   │       ├── cafe_placeholder.jpeg
+│   │       ├── chain_coffee_placeholder.jpeg
+│   │       ├── coffee_home_bg.jpg
+│   │       ├── coffee_logo.jpeg
+│   │       ├── coffee_register_bg.jpg
+│   │       ├── drive_thru_placeholder.jpg
+│   │       ├── food_background.avif
+│   │       ├── food_background.jpg
+│   │       ├── food_backgroundd.avif
+│   │       ├── food_home_bg.jpg
+│   │       ├── local_roaster_placeholder.jpg
+│   │       ├── restaurant.png
+│   │       └── wallpaper.avif
 │   ├── src/
-│   │   ├── components/         # Reusable UI components
-│   │   │   ├── common/
-│   │   │   ├── posts/
-│   │   │   ├── restaurants/
-│   │   │   └── user/
-│   │   ├── pages/             # Main application pages
-│   │   │   ├── Home/
-│   │   │   ├── Profile/
-│   │   │   ├── Restaurant/
-│   │   │   └── Auth/
-│   │   ├── hooks/             # Custom React hooks
-│   │   ├── services/          # API service functions
-│   │   ├── utils/             # Utility functions
+│   │   ├── components/        # Reusable UI components
+│   │   │   ├── AddReview.jsx
+│   │   │   ├── CollectionSelectorModal.jsx
+│   │   │   ├── EditReview.jsx
+│   │   │   ├── FoodPlaceCard.jsx
+│   │   │   ├── Footer.jsx
+│   │   │   ├── Navbar.jsx
+│   │   │   ├── ProtectedRoute.jsx
+│   │   │   └── SearchCoffeeShops.jsx
 │   │   ├── context/           # React context providers
-│   │   ├── assets/            # Images and static files
-│   │   ├── styles/            # Global styles and themes
-│   │   └── App.js             # Main application component
-│   ├── package.json
-│   └── README.md
-├── server/                    # Node.js backend API
-│   ├── controllers/           # Request handlers
-│   │   ├── authController.js
-│   │   ├── postController.js
-│   │   ├── userController.js
-│   │   └── restaurantController.js
-│   ├── models/               # MongoDB data models
-│   │   ├── User.js
-│   │   ├── Post.js
-│   │   ├── Restaurant.js
-│   │   └── Review.js
-│   ├── routes/               # API route definitions
-│   │   ├── auth.js
-│   │   ├── posts.js
-│   │   ├── users.js
-│   │   └── restaurants.js
-│   ├── middleware/           # Custom middleware functions
-│   │   ├── auth.js
-│   │   ├── upload.js
-│   │   └── validation.js
-│   ├── utils/               # Server utility functions
-│   ├── config/              # Configuration files
-│   │   ├── database.js
-│   │   └── cloudinary.js
-│   ├── tests/               # Backend tests
-│   ├── uploads/             # Temporary file storage
-│   ├── package.json
-│   └── server.js            # Main server file
-├── docs/                    # Documentation
-│   ├── API.md               # API documentation
-│   ├── DEPLOYMENT.md        # Deployment guide
-│   └── CONTRIBUTING.md      # Contribution guidelines
-├── .gitignore
-├── docker-compose.yml       # Docker configuration
-├── package.json             # Root package configuration
-└── README.md               # Project documentation
+│   │   │   ├── AuthContext.jsx
+│   │   │   └── FoodPlaceContext.jsx
+│   │   ├── pages/             # Main application pages
+│   │   │   ├── AddReview.jsx
+│   │   │   ├── BrowseReviews.jsx
+│   │   │   ├── CollectionDetails.jsx
+│   │   │   ├── EditReview.jsx
+│   │   │   ├── FoodMap.jsx
+│   │   │   ├── FoodPlaceDetails.jsx
+│   │   │   ├── Home.jsx
+│   │   │   ├── Login.jsx
+│   │   │   ├── MyCollections.jsx
+│   │   │   ├── MyFavorites.jsx
+│   │   │   ├── MyReviews.jsx
+│   │   │   ├── NotFound.jsx
+│   │   │   ├── Profile.jsx
+│   │   │   ├── Register.jsx
+│   │   │   ├── ReviewDetails.jsx
+│   │   │   ├── SearchFoodPlaces.jsx
+│   │   │   ├── SearchResults.jsx
+│   │   │   ├── TestSearch.jsx
+│   │   │   └── ViewReview.jsx
+│   │   ├── screenshots/       # Project screenshots
+│   │   │   ├── collection.png
+│   │   │   ├── fav.png
+│   │   │   ├── main1.png
+│   │   │   ├── main2.png
+│   │   │   ├── main3.png
+│   │   │   ├── map.png
+│   │   │   ├── mobile1.png
+│   │   │   ├── mobile2.png
+│   │   │   ├── restaurant-discovery1.png
+│   │   │   ├── restaurant-discovery2.png
+│   │   │   ├── restaurant-discovery3.png
+│   │   │   └── review.png
+│   │   ├── tests/             # Frontend tests
+│   │   │   ├── Navbar.test.jsx
+│   │   │   ├── SearchBar.test.jsx
+│   │   │   └── TripPlanner.test.jsx
+│   │   ├── App.css            # Application styles
+│   │   ├── App.jsx            # Main application component
+│   │   ├── index.css          # Global styles
+│   │   ├── index.html         # HTML template
+│   │   └── main.jsx           # Application entry point
+│   ├── .env                   # Client environment variables
+│   ├── .gitignore
+│   ├── eslint.config.js       # ESLint configuration
+│   ├── index.html             # Root HTML file
+│   ├── package-lock.json
+│   ├── package.json           # Client dependencies
+│   ├── vercel.json           # Vercel deployment config
+│   └── vite.config.js        # Vite configuration
+├── api/                      # Backend API (Node.js/Express)
+│   ├── node_modules/         # Backend dependencies
+│   ├── prisma/              # Prisma ORM configuration
+│   │   ├── migrations/       # Database migrations
+│   │   │   └── 20250530091537_init/
+│   │   ├── migration_lock.toml
+│   │   └── schema.prisma     # Database schema
+│   ├── src/
+│   │   ├── config/          # Configuration files
+│   │   │   └── db.js        # Database configuration
+│   │   ├── controllers/     # Request handlers
+│   │   │   ├── authController.js
+│   │   │   ├── categoryController.js
+│   │   │   ├── coffeeShopController.js
+│   │   │   ├── collectionsController.js
+│   │   │   ├── searchController.js
+│   │   │   ├── userController.js
+│   │   │   ├── userFavoriteController.js
+│   │   │   └── userReviewController.js
+│   │   ├── middleware/      # Custom middleware
+│   │   │   ├── authMiddleware.js
+│   │   │   └── errorHandler.js
+│   │   └── routes/          # API route definitions
+│   │       ├── authRoutes.js
+│   │       ├── categoryRoutes.js
+│   │       ├── coffeeShopRoutes.js
+│   │       ├── collectionRoutes.js
+│   │       ├── favoriteRoutes.js
+│   │       ├── pingRoutes.js
+│   │       ├── reviewRoutes.js
+│   │       ├── searchRoutes.js
+│   │       └── userRoutes.js
+│   ├── .env                 # Server environment variables
+│   ├── .gitignore
+│   ├── index.js             # Main server file
+│   ├── package-lock.json
+│   ├── package.json         # Server dependencies
+│   └── test-db.js          # Database testing utility
+├── .gitignore              # Root gitignore
+└── README.md              # Project documentation
 ```
 
 ## 🚀 Getting Started
@@ -154,7 +223,7 @@ Make sure you have the following installed:
 
 - **Node.js** (v16.0 or higher)
 - **npm** or **yarn**
-- **MongoDB** (local installation or MongoDB Atlas account)
+- **PostgreSQL** (v12.0 or higher)
 - **Git**
 
 ### Installation
@@ -186,10 +255,13 @@ Make sure you have the following installed:
    **Server `.env`:**
    ```env
    # Database
-   MONGODB_URI=mongodb://localhost:27017/foodsocial
+   DATABASE_URL="postgresql://username:password@localhost:5432/foodsocial_db"
    
    # JWT Secret
    JWT_SECRET=your_jwt_secret_key_here
+   
+   # External APIs
+   GEOAPIFY_API_KEY=your_geoapify_api_key
    
    # Cloudinary (for image uploads)
    CLOUDINARY_CLOUD_NAME=your_cloud_name
@@ -201,42 +273,37 @@ Make sure you have the following installed:
    EMAIL_USER=your_email@gmail.com
    EMAIL_PASS=your_app_password
    
-   # API Keys
-   MAPBOX_ACCESS_TOKEN=your_mapbox_token
-   ALGOLIA_APP_ID=your_algolia_app_id
-   ALGOLIA_API_KEY=your_algolia_api_key
-   
    # Server Configuration
    PORT=5000
    NODE_ENV=development
+   CLIENT_URL=http://localhost:5173
    ```
    
    **Client `.env`:**
    ```env
-   REACT_APP_API_URL=http://localhost:5000/api
-   REACT_APP_MAPBOX_TOKEN=your_mapbox_token
-   REACT_APP_ALGOLIA_APP_ID=your_algolia_app_id
-   REACT_APP_ALGOLIA_SEARCH_KEY=your_algolia_search_key
+   VITE_API_URL=http://localhost:5000/api
+   VITE_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+   VITE_GEOAPIFY_API_KEY=your_geoapify_api_key
    ```
 
 4. **Database Setup**
    ```bash
-   # Start MongoDB service (if running locally)
-   mongod
+   # Navigate to server directory
+   cd server
    
-   # Or use MongoDB Atlas cloud service
-   # Update MONGODB_URI in server/.env with your Atlas connection string
+   # Generate Prisma client
+   npx prisma generate
+   
+   # Run database migrations
+   npx prisma migrate dev --name init
+   
+   # Optional: Seed the database
+   npx prisma db seed
    ```
 
 5. **Start the Development Servers**
    
-   **Option A: Using npm scripts (from root directory)**
-   ```bash
-   # Start both client and server concurrently
-   npm run dev
-   ```
-   
-   **Option B: Start separately**
+   **Option A: Start separately**
    ```bash
    # Terminal 1: Start the backend server
    cd server
@@ -244,66 +311,104 @@ Make sure you have the following installed:
    
    # Terminal 2: Start the React client
    cd client
-   npm start
+   npm run dev
    ```
 
 6. **Access the Application**
-   - **Frontend**: http://localhost:3000
+   - **Frontend**: http://localhost:5173
    - **Backend API**: http://localhost:5000
-   - **API Documentation**: http://localhost:5000/api-docs
+   - **Prisma Studio**: http://localhost:5555 (run `npx prisma studio`)
 
 ## 🔧 Configuration
 
 ### Database Configuration
 
-The application supports both local MongoDB and MongoDB Atlas:
+The application uses PostgreSQL with Prisma ORM:
 
-**Local MongoDB:**
-```javascript
-// server/config/database.js
-const mongoose = require('mongoose');
+**Prisma Schema Example:**
+```prisma
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
 
-const connectDB = async () => {
-  try {
-    await mongoose.connect('mongodb://localhost:27017/foodsocial');
-    console.log('MongoDB connected successfully');
-  } catch (error) {
-    console.error('Database connection failed:', error);
-    process.exit(1);
-  }
-};
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String   @unique
+  name      String?
+  bio       String?
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  reviews    Review[]
+  favorites  Favorite[]
+  collections Collection[]
+  
+  @@map("users")
+}
+
+model Restaurant {
+  id          String  @id @default(cuid())
+  name        String
+  address     String
+  latitude    Float
+  longitude   Float
+  category    String
+  rating      Float?
+  geoapifyId  String? @unique
+  
+  reviews     Review[]
+  favorites   Favorite[]
+  
+  @@map("restaurants")
+}
 ```
 
-**MongoDB Atlas (Cloud):**
+### External API Configuration
+
+**Geoapify Integration:**
 ```javascript
-const connectDB = async () => {
-  try {
-    await mongoose.connect(process.env.MONGODB_URI);
-    console.log('MongoDB Atlas connected successfully');
-  } catch (error) {
-    console.error('Database connection failed:', error);
-    process.exit(1);
+// server/src/services/geoapifyService.js
+const GEOAPIFY_API_KEY = process.env.GEOAPIFY_API_KEY;
+const BASE_URL = 'https://api.geoapify.com/v2';
+
+class GeoapifyService {
+  async searchRestaurants(lat, lon, radius = 5000) {
+    const response = await fetch(
+      `${BASE_URL}/places?categories=catering&filter=circle:${lon},${lat},${radius}&limit=20&apiKey=${GEOAPIFY_API_KEY}`
+    );
+    return response.json();
   }
-};
-```
 
-### Image Upload Configuration
+  async getCategories() {
+    // Get restaurant categories from Geoapify
+    return [
+      'catering.restaurant',
+      'catering.fast_food',
+      'catering.cafe',
+      'catering.bar',
+      'catering.pub'
+    ];
+  }
+}
 
-**Cloudinary Setup:**
-```javascript
-// server/config/cloudinary.js
-const cloudinary = require('cloudinary').v2;
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
-});
-
-module.exports = cloudinary;
+module.exports = new GeoapifyService();
 ```
 
 ## 📱 Features Deep Dive
+
+### 🗺️ Location-Based Discovery
+- **Real-World Data**: Restaurant information from Geoapify's comprehensive database
+- **Interactive Maps**: Visual restaurant discovery with precise locations
+- **Category Filtering**: Browse by restaurant types (cafes, fast food, fine dining, etc.)
+- **Proximity Search**: Find restaurants within customizable radius
 
 ### 🏠 Main Feed
 - **Real-time Updates**: See latest posts from your network
@@ -317,30 +422,17 @@ module.exports = cloudinary;
 - **Activity Timeline**: Track your food journey and reviews
 - **Statistics**: View your review count, followers, and engagement
 
-### 🍕 Restaurant Features
-- **Detailed Listings**: Comprehensive restaurant information
-- **Review System**: 5-star rating system with detailed reviews
-- **Photo Galleries**: Visual showcase of restaurant dishes
-- **Location Integration**: Interactive maps and directions
-- **Menu Integration**: Digital menu viewing and sharing
-
-### 🔍 Search & Discovery
-- **Advanced Search**: Find restaurants, dishes, or users
-- **Geolocation**: Discover nearby food experiences
-- **Trending Content**: See what's popular in your area
-- **Recommendation Engine**: Personalized food suggestions
-
-### 📲 Mobile Experience
-- **Progressive Web App**: Install-able mobile experience
-- **Touch Optimized**: Gesture-friendly interface
-- **Offline Support**: Basic functionality without internet
-- **Push Notifications**: Stay connected on the go
+### 📚 Collections System
+- **Personal Collections**: Create themed restaurant lists
+- **Public/Private**: Control visibility of your collections
+- **Collaborative Collections**: Share and collaborate with friends
+- **Smart Suggestions**: AI-powered collection recommendations
 
 ## 🔐 Authentication & Security
 
 ### Authentication Flow
 ```javascript
-// JWT-based authentication
+// JWT-based authentication with Prisma
 const authFlow = {
   register: "Email verification → Profile setup → Dashboard",
   login: "Credentials → JWT token → Protected routes",
@@ -350,7 +442,7 @@ const authFlow = {
 
 ### Security Features
 - **🔒 JWT Authentication**: Secure token-based authentication
-- **🛡️ Input Validation**: Server-side validation for all inputs
+- **🛡️ Input Validation**: Server-side validation with express-validator
 - **🔐 Password Hashing**: Bcrypt for secure password storage
 - **🚫 Rate Limiting**: Prevent spam and abuse
 - **🔍 XSS Protection**: Cross-site scripting prevention
@@ -363,8 +455,7 @@ const authFlow = {
 POST /api/auth/register     # User registration
 POST /api/auth/login        # User login
 POST /api/auth/logout       # User logout
-POST /api/auth/forgot       # Password reset request
-PUT  /api/auth/reset        # Password reset confirmation
+GET  /api/auth/me           # Get current user
 ```
 
 ### User Management
@@ -377,99 +468,37 @@ GET    /api/users/followers # Get user followers
 GET    /api/users/following # Get user following
 ```
 
-### Posts & Content
-```
-GET    /api/posts           # Get feed posts
-POST   /api/posts           # Create new post
-PUT    /api/posts/:id       # Update post
-DELETE /api/posts/:id       # Delete post
-POST   /api/posts/:id/like  # Like/unlike post
-POST   /api/posts/:id/comment # Add comment
-```
-
 ### Restaurant & Reviews
 ```
-GET    /api/restaurants     # Get restaurants
-GET    /api/restaurants/:id # Get specific restaurant
-POST   /api/reviews         # Create restaurant review
-GET    /api/reviews/:id     # Get restaurant reviews
-PUT    /api/reviews/:id     # Update review
-DELETE /api/reviews/:id     # Delete review
+GET    /api/coffee-shops        # Get restaurants from Geoapify
+GET    /api/coffee-shops/:id    # Get specific restaurant
+POST   /api/reviews             # Create restaurant review
+GET    /api/reviews/:id         # Get restaurant reviews
+PUT    /api/reviews/:id         # Update review
+DELETE /api/reviews/:id         # Delete review
 ```
 
 ### Search & Discovery
 ```
-GET    /api/search/restaurants # Search restaurants
-GET    /api/search/users       # Search users
-GET    /api/search/posts       # Search posts
-GET    /api/search/nearby      # Get nearby restaurants
+GET    /api/search/restaurants  # Search restaurants via Geoapify
+GET    /api/search/users        # Search users
+GET    /api/categories          # Get restaurant categories
+GET    /api/search/nearby       # Get nearby restaurants
 ```
 
-## 🎨 UI/UX Design
-
-### Design System
-- **Color Palette**: Warm, food-inspired colors
-- **Typography**: Clean, readable fonts (Roboto, Open Sans)
-- **Icons**: Food Awesome and custom food icons
-- **Layout**: Mobile-first responsive design
-- **Animation**: Smooth micro-interactions and transitions
-
-### Component Library
-```javascript
-// Example reusable components
-├── Button/              # Custom button variants
-├── Card/                # Food post cards
-├── Modal/               # Dialog components
-├── Form/                # Form input components
-├── Navigation/          # Header and sidebar navigation
-├── Map/                 # Interactive map component
-└── ImageUpload/         # Drag-and-drop image upload
+### Collections & Favorites
 ```
-
-## 🧪 Testing
-
-### Running Tests
-
-```bash
-# Run all tests
-npm test
-
-# Run client tests
-cd client && npm test
-
-# Run server tests
-cd server && npm test
-
-# Run tests with coverage
-npm run test:coverage
-```
-
-### Test Structure
-```javascript
-// Example test structure
-describe('User Authentication', () => {
-  test('should register new user successfully', async () => {
-    // Test registration flow
-  });
-  
-  test('should login with valid credentials', async () => {
-    // Test login flow
-  });
-  
-  test('should reject invalid credentials', async () => {
-    // Test error handling
-  });
-});
+GET    /api/collections         # Get user collections
+POST   /api/collections         # Create new collection
+PUT    /api/collections/:id     # Update collection
+DELETE /api/collections/:id     # Delete collection
+POST   /api/favorites           # Add to favorites
+DELETE /api/favorites/:id       # Remove from favorites
 ```
 
 ## 🚀 Deployment
 
 ### Environment Setup
-
-**Development:**
-```bash
-npm run dev
-```
 
 **Production Build:**
 ```bash
@@ -482,50 +511,29 @@ cd server && npm start
 
 ### Deployment Options
 
-#### 1. **Heroku Deployment**
-```bash
-# Install Heroku CLI
-heroku create foodsocial-app
-
-# Set environment variables
-heroku config:set NODE_ENV=production
-heroku config:set MONGODB_URI=your_atlas_uri
-heroku config:set JWT_SECRET=your_jwt_secret
-
-# Deploy
-git push heroku main
-```
-
-#### 2. **Netlify + Heroku**
+#### 1. **Netlify (Frontend) + Render (Backend)**
 ```bash
 # Frontend (Netlify)
 cd client
 npm run build
-# Deploy build folder to Netlify
+# Deploy dist folder to Netlify
 
-# Backend (Heroku)
-cd server
-git subtree push --prefix server heroku main
+# Backend (Render)
+# Connect your GitHub repository to Render
+# Set environment variables in Render dashboard
+# Configure PostgreSQL database on Render
 ```
 
-#### 3. **Docker Deployment**
+#### 2. **Vercel + Railway**
 ```bash
-# Build and run with Docker Compose
-docker-compose up --build
+# Frontend (Vercel)
+cd client
+vercel --prod
 
-# Production deployment
-docker-compose -f docker-compose.prod.yml up -d
-```
-
-#### 4. **AWS/DigitalOcean**
-```bash
-# Build production bundle
-npm run build:prod
-
-# Deploy using your preferred cloud service
-# Configure environment variables
-# Set up database connections
-# Configure SSL certificates
+# Backend (Railway)
+# Connect repository to Railway
+# Configure PostgreSQL database
+# Set environment variables
 ```
 
 ## 🔧 Environment Variables
@@ -534,12 +542,15 @@ npm run build:prod
 
 **Server Environment:**
 ```env
-# Database Configuration
-MONGODB_URI=mongodb://localhost:27017/foodsocial
+# Database Configuration (PostgreSQL)
+DATABASE_URL="postgresql://username:password@host:port/database"
 
 # Authentication
 JWT_SECRET=your_super_secret_jwt_key
 JWT_EXPIRE=7d
+
+# External APIs
+GEOAPIFY_API_KEY=your_geoapify_api_key
 
 # Image Upload Service
 CLOUDINARY_CLOUD_NAME=your_cloudinary_name
@@ -553,92 +564,25 @@ EMAIL_PORT=587
 EMAIL_USER=your_email@gmail.com
 EMAIL_PASS=your_app_password
 
-# External APIs
-MAPBOX_ACCESS_TOKEN=your_mapbox_token
-ALGOLIA_APP_ID=your_algolia_app_id
-ALGOLIA_API_KEY=your_algolia_key
-
 # Server Configuration
 PORT=5000
 NODE_ENV=development
-CLIENT_URL=http://localhost:3000
+CLIENT_URL=http://localhost:5173
 ```
 
 **Client Environment:**
 ```env
 # API Configuration
-REACT_APP_API_URL=http://localhost:5000/api
-REACT_APP_SOCKET_URL=http://localhost:5000
+VITE_API_URL=http://localhost:5000/api
 
 # External Services
-REACT_APP_MAPBOX_TOKEN=your_mapbox_token
-REACT_APP_ALGOLIA_APP_ID=your_algolia_app_id
-REACT_APP_ALGOLIA_SEARCH_KEY=your_search_only_key
-REACT_APP_GOOGLE_ANALYTICS_ID=your_ga_id
+VITE_GOOGLE_MAPS_API_KEY=your_google_maps_key
+VITE_GEOAPIFY_API_KEY=your_geoapify_key
 
 # App Configuration
-REACT_APP_APP_NAME=FoodSocial
-REACT_APP_VERSION=1.0.0
+VITE_APP_NAME=FoodSocial
+VITE_APP_VERSION=1.0.0
 ```
-
-## 🤝 Contributing
-
-We welcome contributions from the community! Here's how you can help:
-
-### 🐛 Bug Reports
-1. **Search existing issues** to avoid duplicates
-2. **Use the bug report template** when creating new issues
-3. **Include detailed information**:
-   - Steps to reproduce
-   - Expected vs actual behavior
-   - Screenshots (if applicable)
-   - System information
-
-### 💡 Feature Requests
-1. **Check the roadmap** to see if the feature is already planned
-2. **Use the feature request template**
-3. **Provide detailed use cases and mockups**
-
-### 🔄 Pull Requests
-1. **Fork the repository**
-2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
-3. **Follow coding standards**: ESLint configuration provided
-4. **Write tests** for new functionality
-5. **Update documentation** as needed
-6. **Submit pull request** with detailed description
-
-### 📝 Coding Standards
-- Follow ESLint configuration
-- Use meaningful variable and function names
-- Write JSDoc comments for functions
-- Maintain consistent file structure
-- Add unit tests for new features
-
-## 🔮 Roadmap
-
-### Phase 1: Core Features ✅
-- [x] User authentication and profiles
-- [x] Basic post creation and sharing
-- [x] Restaurant listings and reviews
-- [x] Social following system
-
-### Phase 2: Enhanced Social Features 🚧
-- [ ] **Real-time Chat**: Direct messaging between users
-- [ ] **Live Streaming**: Live cooking sessions and food tours
-- [ ] **Events System**: Food events and meetup organization
-- [ ] **Groups & Communities**: Topic-based food communities
-
-### Phase 3: Advanced Features 📋
-- [ ] **AI Recommendations**: Machine learning-based food suggestions
-- [ ] **AR Menu Scanning**: Augmented reality menu translation
-- [ ] **Nutrition Tracking**: Calorie and nutrition information integration
-- [ ] **Delivery Integration**: Partner with food delivery services
-
-### Phase 4: Business Features 💼
-- [ ] **Restaurant Dashboard**: Business account management
-- [ ] **Analytics Platform**: Insights for restaurant owners
-- [ ] **Monetization**: Premium features and advertising
-- [ ] **API Platform**: Third-party developer integration
 
 ## 📊 Performance Metrics
 
@@ -646,14 +590,9 @@ We welcome contributions from the community! Here's how you can help:
 - **Page Load Time**: < 2 seconds
 - **API Response Time**: < 200ms average
 - **Image Upload**: < 5 seconds for standard photos
-- **Search Results**: < 500ms for restaurant search
+- **Geoapify API Response**: < 500ms for restaurant search
+- **Database Queries**: Optimized with Prisma ORM
 - **Mobile Performance**: 90+ Lighthouse score
-
-### Monitoring
-- **Error Tracking**: Sentry integration for error monitoring
-- **Analytics**: Google Analytics for user behavior tracking
-- **Performance**: Lighthouse CI for performance monitoring
-- **Uptime**: StatusPage.io for service status tracking
 
 ## 🆘 Troubleshooting
 
@@ -661,39 +600,35 @@ We welcome contributions from the community! Here's how you can help:
 
 #### 1. **Database Connection Failed**
 ```bash
-# Check MongoDB service
-sudo systemctl status mongod  # Linux
-brew services list | grep mongodb  # macOS
+# Check PostgreSQL service
+sudo systemctl status postgresql  # Linux
+brew services list | grep postgresql  # macOS
 
 # Verify connection string
-echo $MONGODB_URI
+echo $DATABASE_URL
+
+# Test connection with Prisma
+npx prisma db push
 ```
 
-#### 2. **Image Upload Not Working**
-- Verify Cloudinary credentials in `.env`
-- Check file size limits (max 10MB)
-- Ensure supported formats (JPG, PNG, WebP)
-
-#### 3. **Search Not Working**
-- Verify Algolia configuration
-- Check API keys and app ID
-- Ensure search index is properly set up
-
-#### 4. **Map Not Loading**
-- Verify Mapbox access token
-- Check network connectivity
-- Ensure proper API key permissions
-
-### Performance Issues
+#### 2. **Geoapify API Issues**
 ```bash
-# Analyze bundle size
-npm run analyze
+# Verify API key
+curl "https://api.geoapify.com/v2/places?categories=catering&limit=1&apiKey=YOUR_API_KEY"
 
-# Check for memory leaks
-node --inspect server.js
+# Check rate limits and quotas in Geoapify dashboard
+```
 
-# Profile React components
-npm install --save-dev @welldone-software/why-did-you-render
+#### 3. **Prisma Issues**
+```bash
+# Reset database
+npx prisma migrate reset
+
+# Regenerate client
+npx prisma generate
+
+# View database in browser
+npx prisma studio
 ```
 
 ## 📄 License
@@ -705,9 +640,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **🍕 Food Community**: For inspiration and feedback
 - **⚛️ React Team**: For the excellent frontend framework
 - **🟢 Node.js Community**: For the robust backend ecosystem
-- **🍃 MongoDB**: For flexible data storage solutions
-- **🎨 Material-UI Team**: For beautiful UI components
-- **📍 Mapbox**: For amazing mapping capabilities
+- **🐘 PostgreSQL**: For reliable database performance
+- **🔷 Prisma Team**: For the amazing ORM experience
+- **🌍 Geoapify**: For comprehensive location data and mapping services
 - **☁️ Cloudinary**: For seamless image management
 
 ## 📞 Contact
@@ -719,20 +654,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - 🐱 **GitHub**: [https://github.com/rachana1707-S](https://github.com/rachana1707-S)
 - 📱 **Phone**: +1 (617) 602-3398
 - 📍 **Location**: Boston, MA, USA
-
-## 🎉 Fun Features
-
-### Easter Eggs
-- **🎂 Birthday Notifications**: Special celebrations for user birthdays
-- **🏆 Achievement Badges**: Unlock badges for food exploration milestones
-- **🌟 Food Streaks**: Track consecutive days of food posting
-- **🎯 Weekly Challenges**: Fun food photography and discovery challenges
-
-### Community Features
-- **📊 Food Trends**: Discover trending dishes and restaurants
-- **🗺️ Food Maps**: Visual representation of your food journey
-- **👥 Foodie Meetups**: Organize local food enthusiast gatherings
-- **🎓 Cooking Classes**: Virtual and in-person cooking sessions
 
 ---
 
