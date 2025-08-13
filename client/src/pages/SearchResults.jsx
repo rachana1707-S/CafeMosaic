@@ -1,3 +1,5 @@
+
+
 // import React, { useEffect, useState } from "react";
 // import { useLocation, useNavigate } from "react-router-dom";
 // import { Utensils, ArrowLeft, Search, MapPin, Star, Phone, Clock, ChevronLeft, ChevronRight, Heart } from "lucide-react";
@@ -137,7 +139,80 @@
 //       if (data.success) {
 //         const places = data.coffeeShops || [];
 //         console.log("✅ Food places received:", places.length);
-//         setAllFoodPlaces(places);
+        
+//         // Enhance places with additional data and save to localStorage
+//         const enhancedPlaces = places.map((place, index) => {
+//           // Create a unique ID if none exists
+//           const uniqueId = place.id || place.placeId || place.place_id || `place_${Date.now()}_${index}`;
+          
+//           return {
+//             ...place,
+//             // Ensure consistent ID fields
+//             id: uniqueId,
+//             placeId: uniqueId,
+//             place_id: place.place_id || uniqueId,
+            
+//             // Standardize address field
+//             address: place.address || place.vicinity || place.formatted_address || 'Address not available',
+            
+//             // Add image if not present
+//             imageUrl: place.imageUrl || (place.photos && place.photos[0]) || getImageForCategory(place.category),
+            
+//             // Ensure phone number format
+//             phone: place.phone || place.formatted_phone_number,
+            
+//             // Add website if not present
+//             website: place.website || place.url,
+            
+//             // Add search timestamp
+//             searchedAt: new Date().toISOString(),
+            
+//             // Add location coordinates if available
+//             latitude: place.latitude || (place.geometry && place.geometry.location && place.geometry.location.lat),
+//             longitude: place.longitude || (place.geometry && place.geometry.location && place.geometry.location.lng),
+            
+//             // Standardize category
+//             category: place.category || (place.types && place.types[0]) || 'restaurant',
+            
+//             // Add cuisine info if available
+//             cuisine: place.cuisine || (place.types && place.types.slice(0,2).join(', ')) || 'International',
+            
+//             // Add description if not present
+//             description: place.description || `Experience ${place.name || 'this restaurant'} with great food and atmosphere.`
+//           };
+//         });
+        
+//         setAllFoodPlaces(enhancedPlaces);
+        
+//         // Save search results to localStorage for detail page access
+//         const existingResults = JSON.parse(localStorage.getItem('searchResults') || '[]');
+        
+//         // Create a map for quick lookup and deduplication
+//         const resultsMap = new Map();
+        
+//         // Add existing results to map
+//         existingResults.forEach(result => {
+//           const key = result.id || result.placeId || result.place_id;
+//           if (key) resultsMap.set(String(key), result);
+//         });
+        
+//         // Add new results to map, overwriting existing ones with same ID
+//         enhancedPlaces.forEach(newPlace => {
+//           const key = newPlace.id || newPlace.placeId || newPlace.place_id;
+//           if (key) {
+//             resultsMap.set(String(key), { ...resultsMap.get(String(key)), ...newPlace });
+//           }
+//         });
+        
+//         // Convert map back to array and keep only recent results
+//         const mergedResults = Array.from(resultsMap.values())
+//           .sort((a, b) => new Date(b.searchedAt || 0) - new Date(a.searchedAt || 0))
+//           .slice(0, 100);
+        
+//         localStorage.setItem('searchResults', JSON.stringify(mergedResults));
+//         console.log("💾 Saved search results to localStorage:", mergedResults.length, "items");
+//         console.log("🔍 Sample saved items:", mergedResults.slice(0, 3).map(r => ({ id: r.id, name: r.name })));
+        
 //       } else {
 //         throw new Error(data.error || 'Search failed');
 //       }
@@ -163,28 +238,45 @@
 //   const handleAddToFavorites = async (foodPlace) => {
 //     try {
 //       let updatedFavorites;
-//       const isAlreadyFavorite = favorites.some(fav => fav.id === foodPlace.id || fav.placeId === foodPlace.placeId);
+//       const isAlreadyFavorite = favorites.some(fav => 
+//         fav.id === foodPlace.id || 
+//         fav.placeId === foodPlace.placeId ||
+//         fav.place_id === foodPlace.place_id
+//       );
       
 //       if (isAlreadyFavorite) {
 //         // Remove from favorites
 //         updatedFavorites = favorites.filter(fav => 
-//           fav.id !== foodPlace.id && fav.placeId !== foodPlace.placeId
+//           fav.id !== foodPlace.id && 
+//           fav.placeId !== foodPlace.placeId &&
+//           fav.place_id !== foodPlace.place_id
 //         );
 //         alert(`${foodPlace.name} removed from favorites!`);
 //       } else {
-//         // Add to favorites
+//         // Add to favorites with complete data
 //         const favoritePlace = {
-//           id: foodPlace.id || foodPlace.placeId,
-//           placeId: foodPlace.placeId || foodPlace.id,
+//           id: foodPlace.id || foodPlace.placeId || foodPlace.place_id,
+//           placeId: foodPlace.placeId || foodPlace.id || foodPlace.place_id,
+//           place_id: foodPlace.place_id || foodPlace.id || foodPlace.placeId,
 //           name: foodPlace.name,
-//           address: foodPlace.address,
+//           address: foodPlace.address || foodPlace.vicinity || foodPlace.formatted_address,
 //           rating: foodPlace.rating,
 //           distance: foodPlace.distance,
 //           category: foodPlace.category,
+//           cuisine: foodPlace.cuisine,
 //           imageUrl: foodPlace.imageUrl,
-//           phone: foodPlace.phone,
-//           website: foodPlace.website,
-//           dateAdded: new Date().toISOString()
+//           phone: foodPlace.phone || foodPlace.formatted_phone_number,
+//           website: foodPlace.website || foodPlace.url,
+//           latitude: foodPlace.latitude || foodPlace.geometry?.location?.lat,
+//           longitude: foodPlace.longitude || foodPlace.geometry?.location?.lng,
+//           priceLevel: foodPlace.priceLevel || foodPlace.price_level,
+//           dateAdded: new Date().toISOString(),
+//           // Store additional data that might be useful
+//           types: foodPlace.types,
+//           geometry: foodPlace.geometry,
+//           photos: foodPlace.photos,
+//           opening_hours: foodPlace.opening_hours,
+//           reviews: foodPlace.reviews
 //         };
         
 //         updatedFavorites = [...favorites, favoritePlace];
@@ -194,6 +286,9 @@
 //       // Save to localStorage (replace with API call later)
 //       localStorage.setItem('foodPlaceFavorites', JSON.stringify(updatedFavorites));
 //       setFavorites(updatedFavorites);
+      
+//       // Dispatch custom event to notify other components
+//       window.dispatchEvent(new CustomEvent('favoritesChanged'));
       
 //       // TODO: Replace with actual API call
 //       // const response = await fetch('/api/favorites', {
@@ -213,9 +308,46 @@
 //     return favorites.some(fav => 
 //       fav.id === foodPlace.id || 
 //       fav.placeId === foodPlace.placeId ||
+//       fav.place_id === foodPlace.place_id ||
 //       fav.id === foodPlace.placeId ||
 //       fav.placeId === foodPlace.id
 //     );
+//   };
+
+//   // Enhanced navigation function that saves place data
+//   const handlePlaceClick = (place) => {
+//     console.log("🔗 Navigating to place:", place.name, "with ID:", place.id);
+    
+//     // Ensure the place data is saved to localStorage for the detail page
+//     const searchResults = JSON.parse(localStorage.getItem('searchResults') || '[]');
+    
+//     // Update or add this place in search results
+//     const updatedResults = searchResults.filter(p => 
+//       p.id !== place.id && 
+//       p.placeId !== place.placeId && 
+//       p.place_id !== place.place_id
+//     );
+    
+//     // Add the current place with complete data
+//     const completePlace = {
+//       ...place,
+//       // Ensure all ID fields are consistent
+//       id: place.id || place.placeId || place.place_id,
+//       placeId: place.id || place.placeId || place.place_id,
+//       place_id: place.place_id || place.id || place.placeId,
+      
+//       // Add timestamp for navigation tracking
+//       lastViewed: new Date().toISOString()
+//     };
+    
+//     updatedResults.push(completePlace);
+//     localStorage.setItem('searchResults', JSON.stringify(updatedResults));
+    
+//     console.log("💾 Saved place data for navigation:", completePlace.name);
+    
+//     // Navigate to detail page
+//     const placeId = place.id || place.placeId || place.place_id;
+//     navigate(`/food-places/${placeId}`);
 //   };
 
 //   const handleQuickSearch = async (e) => {
@@ -474,7 +606,7 @@
 //                       height: "100%",
 //                       boxShadow: "0 2px 8px rgba(0,0,0,0.08)"
 //                     }}
-//                     onClick={() => navigate(`/food-places/${place.id || place.placeId}`)}
+//                     onClick={() => handlePlaceClick(place)}
 //                     onMouseEnter={(e) => {
 //                       e.currentTarget.style.transform = "translateY(-4px)";
 //                       e.currentTarget.style.boxShadow = "0 8px 20px rgba(0,0,0,0.12)";
@@ -582,7 +714,7 @@
 //                       <div className="d-flex align-items-start mb-3">
 //                         <MapPin size={14} className="text-muted me-2 mt-1 flex-shrink-0" />
 //                         <p className="card-text text-muted small mb-0">
-//                           {place.address || 'Address not available'}
+//                           {place.address || place.vicinity || place.formatted_address || 'Address not available'}
 //                         </p>
 //                       </div>
 
@@ -605,15 +737,15 @@
 //                           </div>
 //                         )}
 
-//                         {place.phone && (
+//                         {(place.phone || place.formatted_phone_number) && (
 //                           <div className="d-flex align-items-center mb-2">
 //                             <Phone size={14} className="text-muted me-2" />
 //                             <a 
-//                               href={`tel:${place.phone}`} 
+//                               href={`tel:${place.phone || place.formatted_phone_number}`} 
 //                               className="text-decoration-none small text-primary"
 //                               onClick={(e) => e.stopPropagation()}
 //                             >
-//                               {place.phone}
+//                               {place.phone || place.formatted_phone_number}
 //                             </a>
 //                           </div>
 //                         )}
@@ -627,11 +759,11 @@
 //                           </div>
 //                         )}
 
-//                         {place.website && (
+//                         {(place.website || place.url) && (
 //                           <div className="d-flex align-items-center mb-2">
 //                             <Utensils size={14} className="text-primary me-2" />
 //                             <a 
-//                               href={place.website.startsWith('http') ? place.website : `https://${place.website}`} 
+//                               href={(place.website || place.url).startsWith('http') ? (place.website || place.url) : `https://${place.website || place.url}`} 
 //                               target="_blank" 
 //                               rel="noopener noreferrer"
 //                               className="text-decoration-none small text-primary"
@@ -649,7 +781,7 @@
 //                           className="btn btn-sm flex-fill text-dark fw-bold"
 //                           onClick={(e) => {
 //                             e.stopPropagation();
-//                             navigate(`/food-places/${place.id || place.placeId}`);
+//                             handlePlaceClick(place);
 //                           }}
 //                           style={{ borderRadius: '8px', backgroundColor: "#FFD700", border: "none" }}
 //                         >
@@ -800,6 +932,7 @@
 //   );
 // }
 
+
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Utensils, ArrowLeft, Search, MapPin, Star, Phone, Clock, ChevronLeft, ChevronRight, Heart } from "lucide-react";
@@ -936,87 +1069,102 @@ export default function SearchResults() {
       const data = await response.json();
       console.log("📦 Response data:", data);
       
-      if (data.success) {
-        const places = data.coffeeShops || [];
-        console.log("✅ Food places received:", places.length);
-        
-        // Enhance places with additional data and save to localStorage
-        const enhancedPlaces = places.map((place, index) => {
-          // Create a unique ID if none exists
-          const uniqueId = place.id || place.placeId || place.place_id || `place_${Date.now()}_${index}`;
-          
-          return {
-            ...place,
-            // Ensure consistent ID fields
-            id: uniqueId,
-            placeId: uniqueId,
-            place_id: place.place_id || uniqueId,
-            
-            // Standardize address field
-            address: place.address || place.vicinity || place.formatted_address || 'Address not available',
-            
-            // Add image if not present
-            imageUrl: place.imageUrl || (place.photos && place.photos[0]) || getImageForCategory(place.category),
-            
-            // Ensure phone number format
-            phone: place.phone || place.formatted_phone_number,
-            
-            // Add website if not present
-            website: place.website || place.url,
-            
-            // Add search timestamp
-            searchedAt: new Date().toISOString(),
-            
-            // Add location coordinates if available
-            latitude: place.latitude || (place.geometry && place.geometry.location && place.geometry.location.lat),
-            longitude: place.longitude || (place.geometry && place.geometry.location && place.geometry.location.lng),
-            
-            // Standardize category
-            category: place.category || (place.types && place.types[0]) || 'restaurant',
-            
-            // Add cuisine info if available
-            cuisine: place.cuisine || (place.types && place.types.slice(0,2).join(', ')) || 'International',
-            
-            // Add description if not present
-            description: place.description || `Experience ${place.name || 'this restaurant'} with great food and atmosphere.`
-          };
-        });
-        
-        setAllFoodPlaces(enhancedPlaces);
-        
-        // Save search results to localStorage for detail page access
-        const existingResults = JSON.parse(localStorage.getItem('searchResults') || '[]');
-        
-        // Create a map for quick lookup and deduplication
-        const resultsMap = new Map();
-        
-        // Add existing results to map
-        existingResults.forEach(result => {
-          const key = result.id || result.placeId || result.place_id;
-          if (key) resultsMap.set(String(key), result);
-        });
-        
-        // Add new results to map, overwriting existing ones with same ID
-        enhancedPlaces.forEach(newPlace => {
-          const key = newPlace.id || newPlace.placeId || newPlace.place_id;
-          if (key) {
-            resultsMap.set(String(key), { ...resultsMap.get(String(key)), ...newPlace });
-          }
-        });
-        
-        // Convert map back to array and keep only recent results
-        const mergedResults = Array.from(resultsMap.values())
-          .sort((a, b) => new Date(b.searchedAt || 0) - new Date(a.searchedAt || 0))
-          .slice(0, 100);
-        
-        localStorage.setItem('searchResults', JSON.stringify(mergedResults));
-        console.log("💾 Saved search results to localStorage:", mergedResults.length, "items");
-        console.log("🔍 Sample saved items:", mergedResults.slice(0, 3).map(r => ({ id: r.id, name: r.name })));
-        
+      // FIX: Handle both success property and direct data response
+      let places = [];
+      
+      if (data.success && data.coffeeShops) {
+        // If API returns success property with coffeeShops
+        places = data.coffeeShops;
+      } else if (data.coffeeShops) {
+        // If API returns coffeeShops directly
+        places = data.coffeeShops;
+      } else if (data.places) {
+        // If API returns places array
+        places = data.places;
+      } else if (Array.isArray(data)) {
+        // If API returns array directly
+        places = data;
       } else {
-        throw new Error(data.error || 'Search failed');
+        // Log the actual structure to debug
+        console.log("🔍 Unexpected API response structure:", data);
+        places = [];
       }
       
+      console.log("✅ Food places received:", places.length);
+      
+      // Enhance places with additional data and save to localStorage
+      const enhancedPlaces = places.map((place, index) => {
+        // Create a unique ID if none exists
+        const uniqueId = place.id || place.placeId || place.place_id || `place_${Date.now()}_${index}`;
+        
+        return {
+          ...place,
+          // Ensure consistent ID fields
+          id: uniqueId,
+          placeId: uniqueId,
+          place_id: place.place_id || uniqueId,
+          
+          // Standardize address field
+          address: place.address || place.vicinity || place.formatted_address || 'Address not available',
+          
+          // Add image if not present
+          imageUrl: place.imageUrl || (place.photos && place.photos[0]) || getImageForCategory(place.category),
+          
+          // Ensure phone number format
+          phone: place.phone || place.formatted_phone_number,
+          
+          // Add website if not present
+          website: place.website || place.url,
+          
+          // Add search timestamp
+          searchedAt: new Date().toISOString(),
+          
+          // Add location coordinates if available
+          latitude: place.latitude || (place.geometry && place.geometry.location && place.geometry.location.lat),
+          longitude: place.longitude || (place.geometry && place.geometry.location && place.geometry.location.lng),
+          
+          // Standardize category
+          category: place.category || (place.types && place.types[0]) || 'restaurant',
+          
+          // Add cuisine info if available
+          cuisine: place.cuisine || (place.types && place.types.slice(0,2).join(', ')) || 'International',
+          
+          // Add description if not present
+          description: place.description || `Experience ${place.name || 'this restaurant'} with great food and atmosphere.`
+        };
+      });
+      
+      setAllFoodPlaces(enhancedPlaces);
+      
+      // Save search results to localStorage for detail page access
+      const existingResults = JSON.parse(localStorage.getItem('searchResults') || '[]');
+      
+      // Create a map for quick lookup and deduplication
+      const resultsMap = new Map();
+      
+      // Add existing results to map
+      existingResults.forEach(result => {
+        const key = result.id || result.placeId || result.place_id;
+        if (key) resultsMap.set(String(key), result);
+      });
+      
+      // Add new results to map, overwriting existing ones with same ID
+      enhancedPlaces.forEach(newPlace => {
+        const key = newPlace.id || newPlace.placeId || newPlace.place_id;
+        if (key) {
+          resultsMap.set(String(key), { ...resultsMap.get(String(key)), ...newPlace });
+        }
+      });
+      
+      // Convert map back to array and keep only recent results
+      const mergedResults = Array.from(resultsMap.values())
+        .sort((a, b) => new Date(b.searchedAt || 0) - new Date(a.searchedAt || 0))
+        .slice(0, 100);
+      
+      localStorage.setItem('searchResults', JSON.stringify(mergedResults));
+      console.log("💾 Saved search results to localStorage:", mergedResults.length, "items");
+      console.log("🔍 Sample saved items:", mergedResults.slice(0, 3).map(r => ({ id: r.id, name: r.name })));
+        
     } catch (error) {
       console.error("❌ Search error:", error);
       setError(error.message);

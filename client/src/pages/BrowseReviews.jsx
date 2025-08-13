@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthUser } from "../context/AuthContext";
@@ -66,7 +67,7 @@ export default function BrowseReviews() {
       if (!silent) setLoading(true);
       setRefreshing(true);
       
-      // Load real reviews from API
+      // Load reviews from API
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       const response = await fetch(`${apiUrl}/api/reviews`, {
         credentials: 'include',
@@ -75,115 +76,46 @@ export default function BrowseReviews() {
         }
       });
 
-      let realReviews = [];
       if (response.ok) {
         const data = await response.json();
-        console.log("Real reviews loaded:", data);
-        realReviews = data.reviews || data || [];
+        console.log("Reviews loaded from API:", data);
         
-        // Transform real reviews to match expected format
-        realReviews = realReviews.map(review => ({
-          ...review,
-          foodPlace: review.coffeeShop || {
-            id: review.coffeeShopId,
-            name: review.coffeeShopName || "Unknown Place",
-            address: review.address || "Address not available",
-            category: review.category || "catering.restaurant",
-            imageUrl: getRandomFoodImage(),
-            avgRating: review.avgRating || 4.0
-          },
+        // Transform reviews to include coffee shop data
+        const transformedReviews = (data.reviews || data || []).map(review => ({
+          id: review.id,
+          rating: review.rating,
+          title: review.title,
+          comment: review.comment,
+          visitDate: review.visitDate,
+          createdAt: review.createdAt,
+          updatedAt: review.updatedAt,
           helpfulCount: review.helpfulCount || 0,
-          photos: review.photos || []
-        }));
-      } else {
-        console.log("Failed to load real reviews, status:", response.status);
-      }
-
-      // Mock reviews for demo purposes (only if no real reviews)
-      let mockReviews = [];
-      if (realReviews.length === 0) {
-        mockReviews = [
-          {
-            id: 'mock1',
-            rating: 5,
-            title: "Absolutely Amazing Experience!",
-            comment: "The food was incredible, service was top-notch, and the atmosphere was perfect for a date night. The pasta was cooked to perfection and the wine selection was excellent.",
-            visitDate: "2024-01-20",
-            createdAt: "2024-01-21T10:30:00Z",
-            user: {
-              id: 'mockuser1',
-              username: "foodie_lover",
-              reviewCount: 45
-            },
-            foodPlace: {
-              id: "place1",
-              name: "Delicious Italian Bistro",
-              address: "123 Main St, Boston, MA",
-              category: "catering.restaurant",
-              imageUrl: getRandomFoodImage(),
-              avgRating: 4.5
-            },
-            helpfulCount: 12,
-            photos: [getRandomFoodImage()]
+          photos: review.photos || [],
+          user: {
+            id: review.user?.id || review.userId,
+            username: review.user?.username || 'Anonymous',
+            reviewCount: review.user?.reviewCount || 1
           },
-          {
-            id: 'mock2',
-            rating: 4,
-            title: "Great Coffee and Atmosphere",
-            comment: "Love this place for working remotely. Great WiFi, comfortable seating, and excellent coffee. The baristas are friendly and know their craft.",
-            visitDate: "2024-01-18",
-            createdAt: "2024-01-19T14:20:00Z",
-            user: {
-              id: 'mockuser2',
-              username: "coffee_enthusiast",
-              reviewCount: 28
-            },
-            foodPlace: {
-              id: "place2", 
-              name: "Urban Coffee Roasters",
-              address: "456 Brew St, Boston, MA",
-              category: "catering.cafe",
-              imageUrl: getRandomFoodImage(),
-              avgRating: 4.2
-            },
-            helpfulCount: 8,
-            photos: []
-          },
-          {
-            id: 'mock3',
-            rating: 3,
-            title: "Decent Bar Food",
-            comment: "The wings were good and the beer selection is solid. Service was a bit slow during peak hours but overall a decent experience.",
-            visitDate: "2024-01-15",
-            createdAt: "2024-01-16T18:45:00Z",
-            user: {
-              id: 'mockuser3',
-              username: "sports_fan",
-              reviewCount: 15
-            },
-            foodPlace: {
-              id: "place3",
-              name: "The Sports Corner",
-              address: "789 Game Ave, Boston, MA", 
-              category: "catering.bar",
-              imageUrl: getRandomFoodImage(),
-              avgRating: 3.8
-            },
-            helpfulCount: 5,
-            photos: [getRandomFoodImage(), getRandomFoodImage()]
+          foodPlace: {
+            id: review.coffeeShop?.id || review.coffeeShopId,
+            name: review.coffeeShop?.name || 'Unknown Place',
+            address: review.coffeeShop?.address || 'Address not available',
+            category: review.coffeeShop?.category || 'catering.restaurant',
+            imageUrl: review.coffeeShop?.imageUrl || getRandomFoodImage(),
+            avgRating: review.coffeeShop?.rating || 4.0
           }
-        ];
-      }
+        }));
 
-      // Combine real reviews with mock reviews for demonstration
-      const combinedReviews = [...realReviews, ...mockReviews];
-      setReviews(combinedReviews);
-      
-      console.log(`Loaded ${realReviews.length} real reviews and ${mockReviews.length} mock reviews`);
+        setReviews(transformedReviews);
+        console.log(`Loaded ${transformedReviews.length} reviews from API`);
+        
+      } else {
+        console.error("Failed to load reviews, status:", response.status);
+        setReviews([]);
+      }
       
     } catch (error) {
       console.error("Error loading reviews:", error);
-      // Fallback to empty array if everything fails
       setReviews([]);
     } finally {
       if (!silent) setLoading(false);
@@ -220,9 +152,11 @@ export default function BrowseReviews() {
         ));
       } else {
         console.error("Failed to mark as helpful");
+        alert("Failed to mark as helpful. Please try again.");
       }
     } catch (error) {
       console.error("Error marking review as helpful:", error);
+      alert("Error occurred. Please try again.");
     }
   };
 
@@ -347,7 +281,7 @@ export default function BrowseReviews() {
             
             <button 
               className="btn text-dark fw-bold"
-              onClick={() => navigate('/add-review')}
+              onClick={() => navigate('/search-food-places')}
               style={{ backgroundColor: "#FFD700", border: "none" }}
             >
               <Plus size={18} className="me-2" />
@@ -443,7 +377,7 @@ export default function BrowseReviews() {
             </p>
             <button 
               className="btn text-dark fw-bold px-4"
-              onClick={() => navigate('/add-review')}
+              onClick={() => navigate('/search-food-places')}
               style={{ backgroundColor: "#FFD700", border: "none" }}
             >
               Write First Review
@@ -660,7 +594,7 @@ export default function BrowseReviews() {
             </p>
             <button 
               className="btn text-dark fw-bold px-4"
-              onClick={() => navigate('/add-review')}
+              onClick={() => navigate('/search-food-places')}
               style={{ backgroundColor: "#FFD700", border: "none" }}
             >
               <Plus size={18} className="me-2" />

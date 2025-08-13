@@ -1,69 +1,8 @@
-// /* eslint-disable no-undef */
-
-// // Helper functions for generating fallback data
-//   const generatePhoneNumber = () => {
-//     return `+1-617-555-${Math.floor(Math.random() * 9000) + 1000}`;
-//   };
-
-//   const generateWebsite = (name) => {
-//     if (!name) return null;
-//     const cleanName = name.toLowerCase().replace(/[^a-z0-9]/g, '');
-//     return `https://${cleanName}.com`;
-//   };  // Fallback function for generating mock data when no cached data exists
-//   const generateMockFoodPlace = (id) => {
-//     // Try to extract meaningful info from the ID if it looks like an address or name
-//     let name = "Local Restaurant";
-//     let address = "Address not available";
-//     let category = "restaurant";
-    
-//     if (id.includes("boylston")) {
-//       name = "Boylston Street Bistro";
-//       address = "1165 Boylston St, Boston, MA 02215";
-//       category = "restaurant";
-//     } else if (id.includes("newbury")) {
-//       name = "Newbury Street Cafe";
-//       address = id.replace(/_/g, ' ');
-//       category = "cafe";
-//     } else if (id.includes("cambridge")) {
-//       name = "Cambridge Corner";
-//       address = id.replace(/_/g, ' ');
-//       category = "restaurant";
-//     } else if (id.includes("bar") || id.includes("pub")) {
-//       name = id.replace(/_/g, ' ').split(' ').map(word => 
-//         word.charAt(0).toUpperCase() + word.slice(1)
-//       ).join(' ');
-//       address = `${Math.floor(Math.random() * 999) + 100} Main St, Boston, MA`;
-//       category = id.includes("bar") ? "bar" : "pub";
-//     } else {
-//       // Generate name from ID
-//       name = id.replace(/_/g, ' ').split(' ').map(word => 
-//         word.charAt(0).toUpperCase() + word.slice(1)
-//       ).join(' ');
-//       address = `${Math.floor(Math.random() * 999) + 100} ${name.split(' ')[0]} St, Boston, MA`;
-//     }
-
-//     return {
-//       id: id,
-//       placeId: id,
-//       name: name,
-//       address: address,
-//       phone: `+1-617-555-${Math.floor(Math.random() * 9000) + 1000}`,
-//       website: `https://${name.toLowerCase().replace(/\s+/g, '')}.com`,
-//       rating: (Math.random() * 1.5 + 3.5).toFixed(1),
-//       priceLevel: Math.floor(Math.random() * 4) + 1,
-//       category: category,
-//       cuisine: "International",
-//       description: generateDescription(name, category),
-//       imageUrl: getImageForCategory(category),
-//       latitude: 42.3601 + (Math.random() - 0.5) * 0.02,
-//       longitude: -71.0589 + (Math.random() - 0.5) * 0.02,
-//       openingHours: generateOpeningHours(category),
-//       amenities: generateAmenities(category),
-//       distance: (Math.random() * 3 + 0.1).toFixed(1)
-//     };
-//   };import React, { useEffect, useState } from "react";
+/* eslint-disable no-unused-vars */
+// import React, { useEffect, useState } from "react";
 // import { useParams, useNavigate } from "react-router-dom";
 // import { useAuthUser } from "../context/AuthContext";
+// import CollectionSelectorModal from "../components/CollectionSelectorModal";
 // import { 
 //   ArrowLeft, 
 //   MapPin, 
@@ -78,7 +17,9 @@
 //   Wifi,
 //   Car,
 //   CreditCard,
-//   Users
+//   Users,
+//   Folder,
+//   Plus
 // } from "lucide-react";
 
 // export default function FoodPlaceDetails() {
@@ -93,6 +34,7 @@
 //   const [error, setError] = useState(null);
 //   const [isFavorite, setIsFavorite] = useState(false);
 //   const [showReviewForm, setShowReviewForm] = useState(false);
+//   const [showCollectionModal, setShowCollectionModal] = useState(false);
 //   const [newReview, setNewReview] = useState({
 //     rating: '',
 //     comment: '',
@@ -157,7 +99,15 @@
 //     ]
 //   };
 
-  
+//   const generatePhoneNumber = () => {
+//     return `+1-617-555-${Math.floor(Math.random() * 9000) + 1000}`;
+//   };
+
+//   const generateWebsite = (name) => {
+//     if (!name) return null;
+//     const cleanName = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+//     return `https://${cleanName}.com`;
+//   };
 
 //   const getImageForCategory = (category) => {
 //     const categoryType = category ? category.replace('catering.', '') : 'restaurant';
@@ -285,6 +235,60 @@
 //     return amenities[category] || amenities.restaurant;
 //   };
 
+//   // Fallback function for generating mock data when no cached data exists
+//   const generateMockFoodPlace = (id) => {
+//     // Try to extract meaningful info from the ID if it looks like an address or name
+//     let name = "Local Restaurant";
+//     let address = "Address not available";
+//     let category = "restaurant";
+    
+//     if (id.includes("boylston")) {
+//       name = "Boylston Street Bistro";
+//       address = "1165 Boylston St, Boston, MA 02215";
+//       category = "restaurant";
+//     } else if (id.includes("newbury")) {
+//       name = "Newbury Street Cafe";
+//       address = id.replace(/_/g, ' ');
+//       category = "cafe";
+//     } else if (id.includes("cambridge")) {
+//       name = "Cambridge Corner";
+//       address = id.replace(/_/g, ' ');
+//       category = "restaurant";
+//     } else if (id.includes("bar") || id.includes("pub")) {
+//       name = id.replace(/_/g, ' ').split(' ').map(word => 
+//         word.charAt(0).toUpperCase() + word.slice(1)
+//       ).join(' ');
+//       address = `${Math.floor(Math.random() * 999) + 100} Main St, Boston, MA`;
+//       category = id.includes("bar") ? "bar" : "pub";
+//     } else {
+//       // Generate name from ID
+//       name = id.replace(/_/g, ' ').split(' ').map(word => 
+//         word.charAt(0).toUpperCase() + word.slice(1)
+//       ).join(' ');
+//       address = `${Math.floor(Math.random() * 999) + 100} ${name.split(' ')[0]} St, Boston, MA`;
+//     }
+
+//     return {
+//       id: id,
+//       placeId: id,
+//       name: name,
+//       address: address,
+//       phone: `+1-617-555-${Math.floor(Math.random() * 9000) + 1000}`,
+//       website: `https://${name.toLowerCase().replace(/\s+/g, '')}.com`,
+//       rating: (Math.random() * 1.5 + 3.5).toFixed(1),
+//       priceLevel: Math.floor(Math.random() * 4) + 1,
+//       category: category,
+//       cuisine: "International",
+//       description: generateDescription(name, category),
+//       imageUrl: getImageForCategory(category),
+//       latitude: 42.3601 + (Math.random() - 0.5) * 0.02,
+//       longitude: -71.0589 + (Math.random() - 0.5) * 0.02,
+//       openingHours: generateOpeningHours(category),
+//       amenities: generateAmenities(category),
+//       distance: (Math.random() * 3 + 0.1).toFixed(1)
+//     };
+//   };
+
 //   // Check if current food place is in favorites
 //   const checkIfFavorite = (place) => {
 //     if (!place) return false;
@@ -395,7 +399,6 @@
         
 //         // Try to fetch from a real API if available
 //         try {
-//           // TODO: Replace with your actual API call
 //           const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 //           const response = await fetch(`${apiUrl}/api/places/${foodPlaceId}`, {
 //             credentials: 'include'
@@ -612,14 +615,6 @@
 //       // Show success message
 //       alert(`${foodPlace.name} ${action === "added" ? "added to" : "removed from"} favorites!`);
       
-//       // TODO: Replace with actual API call when backend is ready
-//       // const response = await fetch('/api/favorites', {
-//       //   method: action === "added" ? 'POST' : 'DELETE',
-//       //   headers: { 'Content-Type': 'application/json' },
-//       //   credentials: 'include',
-//       //   body: JSON.stringify({ foodPlaceId: foodPlace.id })
-//       // });
-      
 //     } catch (error) {
 //       console.error("Error updating favorites:", error);
 //       alert("Error updating favorites. Please try again.");
@@ -645,6 +640,12 @@
 //       navigator.clipboard.writeText(window.location.href);
 //       alert("Link copied to clipboard!");
 //     }
+//   };
+
+//   const handlePlaceAddedToCollection = (place, collectionIds) => {
+//     console.log(`${place.name} added to ${collectionIds.length} collection(s)`);
+//     // You can add additional logic here if needed
+//     // For example, show a success notification or update the UI
 //   };
 
 //   const handleReviewSubmit = async (e) => {
@@ -1016,6 +1017,18 @@
 //                           Write Review
 //                         </button>
 
+//                         {/* Add to Collection Button */}
+//                         {isAuthenticated() && (
+//                           <button 
+//                             className="btn text-dark fw-bold"
+//                             onClick={() => setShowCollectionModal(true)}
+//                             style={{ backgroundColor: "#FFD700", border: "none" }}
+//                           >
+//                             <Folder size={16} className="me-2" />
+//                             Add to Collection
+//                           </button>
+//                         )}
+
 //                         <button 
 //                           className={`btn fw-bold ${isFavorite ? 'text-white' : 'text-dark'}`}
 //                           onClick={handleAddToFavorites}
@@ -1235,10 +1248,20 @@
 //             </div>
 //           )}
 //         </div>
+
+//         {/* Collection Selector Modal */}
+//         <CollectionSelectorModal 
+//           show={showCollectionModal}
+//           onHide={() => setShowCollectionModal(false)}
+//           selectedPlace={foodPlace}
+//           onPlaceAddedToCollection={handlePlaceAddedToCollection}
+//         />
 //       </div>
 //     </div>
 //   );
 // }
+
+
 
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -1278,6 +1301,7 @@ export default function FoodPlaceDetails() {
   const [showCollectionModal, setShowCollectionModal] = useState(false);
   const [newReview, setNewReview] = useState({
     rating: '',
+    title: '',
     comment: '',
     visitDate: ''
   });
@@ -1641,7 +1665,7 @@ export default function FoodPlaceDetails() {
         // Try to fetch from a real API if available
         try {
           const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-          const response = await fetch(`${apiUrl}/api/places/${foodPlaceId}`, {
+          const response = await fetch(`${apiUrl}/api/coffee-shops/${foodPlaceId}`, {
             credentials: 'include'
           });
           
@@ -1683,8 +1707,8 @@ export default function FoodPlaceDetails() {
       // Fetch similar places
       fetchSimilarPlaces(mockFoodPlace);
       
-      // Fetch reviews
-      fetchReviews();
+      // Fetch reviews for this specific place
+      fetchReviews(mockFoodPlace.id);
       
     } catch (error) {
       setError(error.message);
@@ -1767,30 +1791,43 @@ export default function FoodPlaceDetails() {
     }
   };
 
-  const fetchReviews = async () => {
+  const fetchReviews = async (placeId) => {
     try {
-      const mockReviews = [
-        {
-          id: 1,
-          user: { username: "foodie123" },
-          rating: 5,
-          comment: "Amazing pasta and great service! Will definitely come back.",
-          visitDate: "2024-01-15",
-          createdAt: "2024-01-16T10:30:00Z"
-        },
-        {
-          id: 2,
-          user: { username: "diningexpert" },
-          rating: 4,
-          comment: "Good food and nice atmosphere. The tiramisu was exceptional!",
-          visitDate: "2024-01-10", 
-          createdAt: "2024-01-11T14:20:00Z"
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${apiUrl}/api/reviews/coffee-shop/${placeId}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
         }
-      ];
-      
-      setReviews(mockReviews);
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Reviews for this place:", data);
+        
+        // Transform the reviews to match expected format
+        const transformedReviews = (data.reviews || data || []).map(review => ({
+          id: review.id,
+          rating: review.rating,
+          title: review.title,
+          comment: review.comment,
+          visitDate: review.visitDate,
+          createdAt: review.createdAt,
+          updatedAt: review.updatedAt,
+          user: {
+            id: review.user?.id || review.userId,
+            username: review.user?.username || 'Anonymous'
+          }
+        }));
+        
+        setReviews(transformedReviews);
+      } else {
+        console.error("Failed to fetch reviews:", response.status);
+        setReviews([]);
+      }
     } catch (error) {
       console.error("Error fetching reviews:", error);
+      setReviews([]);
     }
   };
 
@@ -1889,6 +1926,42 @@ export default function FoodPlaceDetails() {
     // For example, show a success notification or update the UI
   };
 
+  const ensureCoffeeShopExists = async (foodPlace) => {
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      
+      // First check if the coffee shop exists by placeId
+      const checkResponse = await fetch(`${apiUrl}/api/coffee-shops?placeId=${foodPlace.placeId || foodPlace.id}`, {
+        credentials: 'include'
+      });
+
+      if (checkResponse.ok) {
+        const data = await checkResponse.json();
+        const existingShops = data.coffeeShops || data || [];
+        
+        // Find shop with matching placeId
+        const existingShop = existingShops.find(shop => 
+          shop.placeId === (foodPlace.placeId || foodPlace.id) ||
+          shop.id === parseInt(foodPlace.id)
+        );
+        
+        if (existingShop) {
+          console.log("Coffee shop exists:", existingShop.id);
+          return existingShop.id;
+        }
+      }
+
+      // Coffee shop doesn't exist, we need to create it
+      // But since we can't use the admin endpoint, we'll create it through review submission
+      console.log("Coffee shop doesn't exist, will create during review submission");
+      return foodPlace.placeId || foodPlace.id; // Return the external ID for now
+      
+    } catch (error) {
+      console.error("Error checking coffee shop:", error);
+      return foodPlace.placeId || foodPlace.id;
+    }
+  };
+
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
     
@@ -1898,68 +1971,159 @@ export default function FoodPlaceDetails() {
       return;
     }
     
-    if (!newReview.rating || !newReview.comment) {
-      alert("Please provide a rating and comment");
+    if (!newReview.rating || !newReview.comment.trim() || !newReview.title.trim()) {
+      alert("Please provide a rating, title, and comment");
       return;
     }
     
     try {
-      // Try to submit to real API first
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+      // Try a different approach - submit review with place data
+      // The backend can create the coffee shop if it doesn't exist
+      const reviewPayload = {
+        // Coffee shop data for creation if needed
+        coffeeShopData: {
+          placeId: foodPlace.placeId || foodPlace.id,
+          name: foodPlace.name,
+          address: foodPlace.address,
+          latitude: parseFloat(foodPlace.latitude) || 42.3601,
+          longitude: parseFloat(foodPlace.longitude) || -71.0589,
+          phone: foodPlace.phone || null,
+          website: foodPlace.website || null,
+          imageUrl: foodPlace.imageUrl || null,
+          rating: parseFloat(foodPlace.rating) || null,
+          priceLevel: parseInt(foodPlace.priceLevel) || null,
+          city: foodPlace.city || "Boston",
+          state: foodPlace.state || "MA",
+          country: "US"
+        },
+        // Review data
+        rating: parseInt(newReview.rating),
+        title: newReview.title.trim(),
+        comment: newReview.comment.trim(),
+        visitDate: newReview.visitDate || null,
+        isRecommended: true
+      };
+
+      console.log("Submitting review with coffee shop data:", reviewPayload);
+
+      const response = await fetch(`${apiUrl}/api/reviews/create-with-place`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(reviewPayload)
+      });
+
+      console.log("Review submission response status:", response.status);
+
+      if (response.ok) {
+        const submittedReview = await response.json();
+        console.log("Review submitted successfully:", submittedReview);
+        
+        const reviewWithUser = {
+          ...submittedReview.review,
+          user: { 
+            id: user.id,
+            username: user.username 
+          }
+        };
+        
+        setReviews([reviewWithUser, ...reviews]);
+        setNewReview({ rating: '', title: '', comment: '', visitDate: '' });
+        setShowReviewForm(false);
+        alert("Review submitted successfully!");
+      } else {
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+        console.error("Failed to submit review:", errorData);
+        
+        // Fallback: Try the regular review endpoint with just basic data
+        console.log("Trying fallback approach...");
+        await tryFallbackReviewSubmission();
+      }
+    } catch (error) {
+      console.log("API submission failed:", error);
+      // Try fallback approach
+      await tryFallbackReviewSubmission();
+    }
+  };
+
+  const tryFallbackReviewSubmission = async () => {
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      
+      // Use a simpler approach - try to find existing coffee shop by name/address
+      const searchResponse = await fetch(`${apiUrl}/api/coffee-shops?name=${encodeURIComponent(foodPlace.name)}`, {
+        credentials: 'include'
+      });
+
+      let coffeeShopId = null;
+
+      if (searchResponse.ok) {
+        const searchData = await searchResponse.json();
+        const coffeeShops = searchData.coffeeShops || searchData || [];
+        const matchingShop = coffeeShops.find(shop => 
+          shop.name.toLowerCase() === foodPlace.name.toLowerCase() ||
+          shop.address.toLowerCase().includes(foodPlace.address.toLowerCase().substring(0, 20))
+        );
+        
+        if (matchingShop) {
+          coffeeShopId = matchingShop.id;
+          console.log("Found existing coffee shop by name/address:", coffeeShopId);
+        }
+      }
+
+      if (!coffeeShopId) {
+        // Still no coffee shop found, show error message
+        alert("This place is not yet in our database. Please contact support to add it, or try reviewing a different place.");
+        return;
+      }
+
+      // Now try to submit the review with the found coffee shop ID
+      const reviewPayload = {
+        coffeeShopId: coffeeShopId,
+        rating: parseInt(newReview.rating),
+        title: newReview.title.trim(),
+        comment: newReview.comment.trim(),
+        visitDate: newReview.visitDate || null,
+        isRecommended: true
+      };
+
       const response = await fetch(`${apiUrl}/api/reviews`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json'
+        },
         credentials: 'include',
-        body: JSON.stringify({
-          coffeeShopId: foodPlaceId,
-          rating: parseInt(newReview.rating),
-          title: `Review for ${foodPlace.name}`,
-          comment: newReview.comment,
-          visitDate: newReview.visitDate || null
-        })
+        body: JSON.stringify(reviewPayload)
       });
 
       if (response.ok) {
         const submittedReview = await response.json();
-        console.log("Review submitted successfully to API:", submittedReview);
+        console.log("Review submitted successfully (fallback):", submittedReview);
         
         const reviewWithUser = {
-          ...submittedReview,
-          user: { username: user.username, id: user.id }
+          ...submittedReview.review,
+          user: { 
+            id: user.id,
+            username: user.username 
+          }
         };
         
         setReviews([reviewWithUser, ...reviews]);
-        setNewReview({ rating: '', comment: '', visitDate: '' });
+        setNewReview({ rating: '', title: '', comment: '', visitDate: '' });
         setShowReviewForm(false);
-        alert("Review submitted successfully! It will appear in the Reviews page.");
+        alert("Review submitted successfully!");
       } else {
-        throw new Error("API submission failed");
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+        alert(errorData.message || "Failed to submit review. This place may not be available for reviews yet.");
       }
+
     } catch (error) {
-      console.log("API submission failed, using local simulation:", error);
-      
-      // Fallback to local simulation if API fails
-      const review = {
-        id: Date.now(),
-        user: { username: user.username, id: user.id },
-        rating: parseInt(newReview.rating),
-        title: `Review for ${foodPlace.name}`,
-        comment: newReview.comment,
-        visitDate: newReview.visitDate,
-        createdAt: new Date().toISOString(),
-        foodPlace: {
-          id: foodPlace.id,
-          name: foodPlace.name,
-          address: foodPlace.address,
-          category: foodPlace.category
-        },
-        helpfulCount: 0
-      };
-      
-      setReviews([review, ...reviews]);
-      setNewReview({ rating: '', comment: '', visitDate: '' });
-      setShowReviewForm(false);
-      alert("Review added successfully!");
+      console.error("Fallback submission failed:", error);
+      alert("Unable to submit review. Please try again later.");
     }
   };
 
@@ -2004,7 +2168,7 @@ export default function FoodPlaceDetails() {
         </div>
       </div>
     );
-  }
+  };
 
   if (error || !foodPlace) {
     return (
@@ -2305,61 +2469,97 @@ export default function FoodPlaceDetails() {
           </div>
         </div>
 
-        {/* Review Form */}
+        {/* Review Form - ONLY CHANGE: This form now appears inline */}
         {showReviewForm && (
           <div className="card shadow mb-5" style={{ borderRadius: '15px' }}>
             <div className="card-body p-4">
-              <h5 className="mb-3">Write a Review</h5>
+              <div className="d-flex justify-content-between align-items-center mb-4">
+                <h5>Write a Review for {foodPlace.name}</h5>
+                <button
+                  className="btn-close"
+                  onClick={() => setShowReviewForm(false)}
+                  aria-label="Close"
+                ></button>
+              </div>
               <form onSubmit={handleReviewSubmit}>
                 <div className="row">
-                  <div className="col-md-4 mb-3">
-                    <label className="form-label">Rating *</label>
-                    <select 
-                      className="form-select"
-                      value={newReview.rating}
-                      onChange={(e) => setNewReview({...newReview, rating: e.target.value})}
-                      required
-                    >
-                      <option value="">Select rating</option>
-                      <option value="5">5 - Excellent</option>
-                      <option value="4">4 - Very Good</option>
-                      <option value="3">3 - Good</option>
-                      <option value="2">2 - Fair</option>
-                      <option value="1">1 - Poor</option>
-                    </select>
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-semibold">Overall Rating *</label>
+                    <div className="d-flex align-items-center">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          size={24}
+                          className={`me-1 cursor-pointer ${
+                            star <= newReview.rating ? "text-warning" : "text-muted"
+                          }`}
+                          fill={star <= newReview.rating ? "currentColor" : "none"}
+                          onClick={() => setNewReview({...newReview, rating: star})}
+                          style={{ cursor: 'pointer' }}
+                        />
+                      ))}
+                      <span className="ms-2 text-muted">
+                        {newReview.rating ? `${newReview.rating}/5` : "Click to rate"}
+                      </span>
+                    </div>
                   </div>
                   
-                  <div className="col-md-4 mb-3">
-                    <label className="form-label">Visit Date</label>
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-semibold">Visit Date</label>
                     <input 
                       type="date"
                       className="form-control"
                       value={newReview.visitDate}
                       onChange={(e) => setNewReview({...newReview, visitDate: e.target.value})}
+                      max={new Date().toISOString().split('T')[0]}
                     />
                   </div>
-                  
-                  <div className="col-md-4 mb-3 d-flex align-items-end">
-                    <button 
-                      type="submit" 
-                      className="btn w-100 text-dark fw-bold"
-                      style={{ backgroundColor: "#FFD700", border: "none" }}
-                    >
-                      Submit Review
-                    </button>
-                  </div>
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label fw-semibold">Review Title *</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Summarize your experience"
+                    value={newReview.title}
+                    onChange={(e) => setNewReview({...newReview, title: e.target.value})}
+                    maxLength={100}
+                    required
+                  />
+                  <div className="form-text">{newReview.title.length}/100 characters</div>
                 </div>
                 
-                <div className="mb-3">
-                  <label className="form-label">Your Review *</label>
+                <div className="mb-4">
+                  <label className="form-label fw-semibold">Your Review *</label>
                   <textarea 
                     className="form-control"
                     rows="4"
                     value={newReview.comment}
                     onChange={(e) => setNewReview({...newReview, comment: e.target.value})}
                     placeholder="Share your experience..."
+                    maxLength={1000}
                     required
                   />
+                  <div className="form-text">{newReview.comment.length}/1000 characters</div>
+                </div>
+
+                <div className="d-flex gap-2">
+                  <button 
+                    type="submit" 
+                    className="btn text-dark fw-bold"
+                    disabled={!newReview.rating || !newReview.comment || !newReview.title}
+                    style={{ backgroundColor: "#FFD700", border: "none" }}
+                  >
+                    Submit Review
+                  </button>
+                  <button 
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    onClick={() => setShowReviewForm(false)}
+                  >
+                    Cancel
+                  </button>
                 </div>
               </form>
             </div>
@@ -2369,12 +2569,30 @@ export default function FoodPlaceDetails() {
         {/* Reviews Section */}
         <div className="card shadow mb-5" style={{ borderRadius: '15px' }}>
           <div className="card-body p-4">
-            <h4 className="mb-4">Customer Reviews ({reviews.length})</h4>
+            <div className="d-flex justify-content-between align-items-center mb-4">
+              <h4>Customer Reviews ({reviews.length})</h4>
+              <button 
+                className="btn text-dark fw-bold"
+                onClick={() => setShowReviewForm(!showReviewForm)}
+                style={{ backgroundColor: "#FFD700", border: "none" }}
+              >
+                <Plus size={16} className="me-2" />
+                Write Review
+              </button>
+            </div>
             
             {reviews.length === 0 ? (
               <div className="text-center py-4">
                 <Star size={48} className="text-muted mb-3" />
-                <p className="text-muted">No reviews yet. Be the first to review this place!</p>
+                <p className="text-muted mb-3">No reviews yet. Be the first to review this place!</p>
+                <button 
+                  className="btn text-dark fw-bold"
+                  onClick={() => setShowReviewForm(!showReviewForm)}
+                  style={{ backgroundColor: "#FFD700", border: "none" }}
+                >
+                  <Plus size={16} className="me-2" />
+                  Write First Review
+                </button>
               </div>
             ) : (
               <div className="row g-4">
@@ -2393,6 +2611,9 @@ export default function FoodPlaceDetails() {
                             </div>
                           </div>
                         </div>
+                        {review.title && (
+                          <h6 className="fw-semibold mb-2">{review.title}</h6>
+                        )}
                         <p className="mb-0">{review.comment}</p>
                         {review.visitDate && (
                           <small className="text-muted">

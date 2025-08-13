@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuthUser } from "../context/AuthContext";
@@ -33,11 +34,7 @@ export default function AddReview() {
     comment: "",
     visitDate: "",
     photos: [],
-    wouldRecommend: true,
-    serviceRating: 0,
-    foodQuality: 0,
-    valueForMoney: 0,
-    atmosphere: 0
+    wouldRecommend: true
   });
 
   // Temporary hover rating for star display
@@ -89,11 +86,16 @@ export default function AddReview() {
     try {
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       const params = new URLSearchParams({
-        location: 'Boston', // You can make this dynamic
-        categories: 'catering.restaurant,catering.cafe,catering.bar,catering.fast_food,catering.ice_cream',
+        location: 'Boston, MA', // You can make this dynamic based on user location
+        categories: 'catering.restaurant,catering.cafe,catering.bar,catering.fast_food,catering.ice_cream,catering.food_court',
         distance: '20',
-        limit: '10'
+        limit: '20'
       });
+
+      // Add search query to filter results
+      if (searchQuery.trim()) {
+        params.append('query', searchQuery.trim());
+      }
 
       const response = await fetch(`${apiUrl}/api/search?${params}`, {
         credentials: 'include',
@@ -104,10 +106,10 @@ export default function AddReview() {
 
       if (response.ok) {
         const data = await response.json();
-        let places = data.coffeeShops || [];
+        let places = data.coffeeShops || data.places || [];
         
-        // Filter results by search query
-        if (searchQuery) {
+        // Additional client-side filtering by search query if not handled by API
+        if (searchQuery && places.length > 0) {
           places = places.filter(place => 
             place.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             place.address.toLowerCase().includes(searchQuery.toLowerCase())
@@ -186,15 +188,10 @@ export default function AddReview() {
       const reviewPayload = {
         coffeeShopId: selectedPlace.id || selectedPlace.placeId,
         rating: parseInt(reviewData.rating),
-        title: reviewData.title,
-        comment: reviewData.comment,
+        title: reviewData.title.trim(),
+        comment: reviewData.comment.trim(),
         visitDate: reviewData.visitDate || null,
-        isRecommended: reviewData.wouldRecommend,
-        // Additional ratings if your backend supports them
-        serviceRating: reviewData.serviceRating || null,
-        foodQuality: reviewData.foodQuality || null,
-        valueForMoney: reviewData.valueForMoney || null,
-        atmosphere: reviewData.atmosphere || null
+        isRecommended: reviewData.wouldRecommend
       };
 
       console.log("Submitting review:", reviewPayload);
@@ -213,9 +210,11 @@ export default function AddReview() {
         console.log("Review submitted successfully:", newReview);
         
         alert("Review submitted successfully!");
+        
+        // Navigate to the food place details page to see the new review
         navigate(`/food-places/${selectedPlace.id || selectedPlace.placeId}`);
       } else {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
         console.error("Failed to submit review:", errorData);
         alert(errorData.message || "Failed to submit review. Please try again.");
       }
@@ -231,7 +230,7 @@ export default function AddReview() {
   const renderStarRating = (currentRating, onRate, label, hoverState = null) => {
     return (
       <div className="mb-3">
-        <label className="form-label fw-semibold">{label}</label>
+        <label className="form-label fw-semibold">{label} {label.includes('*') ? '' : currentRating > 0 ? `(${currentRating}/5)` : ''}</label>
         <div className="d-flex align-items-center">
           {[1, 2, 3, 4, 5].map((star) => (
             <Star
@@ -256,6 +255,7 @@ export default function AddReview() {
   };
 
   const getCategoryName = (category) => {
+    if (!category) return 'FOOD';
     return category.replace('catering.', '').replace('_', ' ').toUpperCase();
   };
 
@@ -309,7 +309,7 @@ export default function AddReview() {
                       <button 
                         className="btn text-dark fw-bold"
                         onClick={searchPlaces}
-                        disabled={searching}
+                        disabled={searching || !searchQuery.trim()}
                         style={{ backgroundColor: "#FFD700", border: "none" }}
                       >
                         {searching ? "Searching..." : "Search"}
@@ -323,7 +323,7 @@ export default function AddReview() {
                       <h6 className="mb-3">Select a place to review:</h6>
                       <div className="row g-3">
                         {searchResults.map((place) => (
-                          <div key={place.id} className="col-12">
+                          <div key={place.id || place.placeId} className="col-12">
                             <div 
                               className="card border-0 bg-light h-100"
                               style={{ 
@@ -337,13 +337,16 @@ export default function AddReview() {
                               <div className="row g-0">
                                 <div className="col-md-3">
                                   <img
-                                    src={place.imageUrl}
+                                    src={place.imageUrl || '/assets/cafe_placeholder.jpg'}
                                     alt={place.name}
                                     className="img-fluid h-100 w-100"
                                     style={{ 
                                       objectFit: 'cover',
                                       borderRadius: '8px 0 0 8px',
                                       minHeight: '120px'
+                                    }}
+                                    onError={(e) => {
+                                      e.target.src = '/assets/cafe_placeholder.jpg';
                                     }}
                                   />
                                 </div>
@@ -389,13 +392,25 @@ export default function AddReview() {
                     <div className="text-center py-4">
                       <Utensils size={48} className="text-muted mb-3" />
                       <p className="text-muted">No places found. Try a different search term.</p>
+                      <button 
+                        className="btn btn-outline-primary"
+                        onClick={() => navigate('/search')}
+                      >
+                        Search All Places
+                      </button>
                     </div>
                   )}
 
                   {!searchQuery && (
                     <div className="text-center py-4">
                       <Search size={48} className="text-muted mb-3" />
-                      <p className="text-muted">Search for the food place you want to review</p>
+                      <p className="text-muted mb-3">Search for the food place you want to review</p>
+                      <button 
+                        className="btn btn-outline-primary"
+                        onClick={() => navigate('/search')}
+                      >
+                        Browse All Places
+                      </button>
                     </div>
                   )}
                 </div>
@@ -411,10 +426,13 @@ export default function AddReview() {
                 <div className="card-body">
                   <div className="d-flex align-items-center">
                     <img
-                      src={selectedPlace.imageUrl}
+                      src={selectedPlace.imageUrl || '/assets/cafe_placeholder.jpg'}
                       alt={selectedPlace.name}
                       className="rounded me-3"
                       style={{ width: '80px', height: '80px', objectFit: 'cover' }}
+                      onError={(e) => {
+                        e.target.src = '/assets/cafe_placeholder.jpg';
+                      }}
                     />
                     <div>
                       <h5 className="fw-bold mb-1">{selectedPlace.name}</h5>
@@ -494,41 +512,6 @@ export default function AddReview() {
                       />
                     </div>
 
-                    {/* Detailed Ratings */}
-                    <div className="mb-4">
-                      <h6 className="mb-3">Rate specific aspects (optional):</h6>
-                      <div className="row">
-                        <div className="col-md-6">
-                          {renderStarRating(
-                            reviewData.serviceRating,
-                            (rating) => handleRatingClick(rating, 'serviceRating'),
-                            "Service"
-                          )}
-                        </div>
-                        <div className="col-md-6">
-                          {renderStarRating(
-                            reviewData.foodQuality,
-                            (rating) => handleRatingClick(rating, 'foodQuality'),
-                            "Food Quality"
-                          )}
-                        </div>
-                        <div className="col-md-6">
-                          {renderStarRating(
-                            reviewData.valueForMoney,
-                            (rating) => handleRatingClick(rating, 'valueForMoney'),
-                            "Value for Money"
-                          )}
-                        </div>
-                        <div className="col-md-6">
-                          {renderStarRating(
-                            reviewData.atmosphere,
-                            (rating) => handleRatingClick(rating, 'atmosphere'),
-                            "Atmosphere"
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
                     {/* Photos */}
                     <div className="mb-4">
                       <label className="form-label fw-semibold">
@@ -542,6 +525,7 @@ export default function AddReview() {
                         accept="image/*"
                         onChange={handlePhotoUpload}
                       />
+                      <div className="form-text">You can upload up to 5 photos</div>
                       
                       {reviewData.photos.length > 0 && (
                         <div className="mt-3">
@@ -595,7 +579,7 @@ export default function AddReview() {
                       <button 
                         type="submit" 
                         className="btn text-dark fw-bold flex-fill"
-                        disabled={submitting || !reviewData.rating || !reviewData.comment.trim()}
+                        disabled={submitting || !reviewData.rating || !reviewData.comment.trim() || !reviewData.title.trim()}
                         style={{ backgroundColor: "#FFD700", border: "none" }}
                       >
                         {submitting ? (
