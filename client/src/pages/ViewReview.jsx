@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useAuthUser } from "../context/AuthContext";

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthUser } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Star, Coffee, Edit2, Trash2, MapPin, Calendar, ThumbsUp, Utensils } from 'lucide-react';
+import { Star, Trash2, MapPin, Calendar, ThumbsUp, Utensils } from 'lucide-react';
 
 export default function MyReviews() {
   const { user, isAuthenticated } = useAuthUser();
@@ -72,10 +72,6 @@ export default function MyReviews() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleEdit = (reviewId) => {
-    navigate(`/reviews/edit/${reviewId}`);
   };
 
   const handleDelete = async (reviewId) => {
@@ -156,7 +152,7 @@ export default function MyReviews() {
     <div className="container-fluid py-4" style={{ marginTop: '80px' }}>
       <div className="container">
         {/* Header */}
-        <div className="d-flex justify-content-between align-items-center mb-4">
+        <div className="mb-4">
           <div>
             <h2 className="mb-1 d-flex align-items-center">
               <Star className="text-warning me-2" size={32} />
@@ -166,14 +162,6 @@ export default function MyReviews() {
               You've written {reviews.length} review{reviews.length !== 1 ? 's' : ''}
             </p>
           </div>
-          <button 
-            className="btn rounded-pill px-4 d-flex align-items-center text-dark fw-bold"
-            onClick={() => navigate('/add-review')}
-            style={{ backgroundColor: "#FFD700", border: "none" }}
-          >
-            <Utensils size={20} className="me-2" />
-            Write New Review
-          </button>
         </div>
 
         {reviews.length === 0 ? (
@@ -181,25 +169,8 @@ export default function MyReviews() {
             <Star size={64} className="text-muted mb-3" />
             <h4 className="text-muted mb-3">No reviews yet</h4>
             <p className="text-muted mb-4">
-              Start exploring food places and share your experiences with the community!
+              You haven't written any reviews yet. When you do, they'll appear here.
             </p>
-            <div className="d-flex gap-3 justify-content-center">
-              <button 
-                className="btn rounded-pill px-4 text-dark fw-bold"
-                onClick={() => navigate('/add-review')}
-                style={{ backgroundColor: "#FFD700", border: "none" }}
-              >
-                <Utensils size={20} className="me-2" />
-                Write Review
-              </button>
-              <button 
-                className="btn btn-outline-secondary rounded-pill px-4"
-                onClick={() => navigate('/search')}
-              >
-                <Coffee size={20} className="me-2" />
-                Find Food Places
-              </button>
-            </div>
           </div>
         ) : (
           <div className="row g-4">
@@ -290,14 +261,6 @@ export default function MyReviews() {
                       {/* Actions */}
                       <div className="col-md-2">
                         <div className="d-flex flex-column gap-2 h-100 justify-content-center">
-                          <button
-                            className="btn btn-outline-primary btn-sm rounded-pill"
-                            onClick={() => handleEdit(review.id)}
-                            disabled // Disable for now since edit functionality isn't implemented
-                          >
-                            <Edit2 size={14} className="me-1" />
-                            Edit
-                          </button>
                           <button
                             className="btn btn-outline-danger btn-sm rounded-pill"
                             onClick={() => handleDelete(review.id)}
