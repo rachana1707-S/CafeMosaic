@@ -1,3 +1,4 @@
+
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -150,16 +151,55 @@ export default function CollectionDetails() {
 
   const handleToggleVisited = async (place) => {
     try {
-      const isVisited = !place.isVisited;
-      
-      // Update in API
+      const isCurrentlyVisited = place.isVisited;
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      
+      if (isCurrentlyVisited) {
+        // Unmark as visited - remove from visits table
+        const response = await fetch(`${apiUrl}/api/visits/unmark-visited`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ 
+            coffeeShopId: place.id || place.placeId 
+          })
+        });
+
+        if (response.ok) {
+          console.log("Place unmarked as visited");
+        } else {
+          console.warn("Failed to unmark place in API, continuing with local update");
+        }
+      } else {
+        // Mark as visited - add to visits table
+        const response = await fetch(`${apiUrl}/api/visits/mark-visited`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ 
+            coffeeShopId: place.id || place.placeId,
+            visitDate: new Date().toISOString(),
+            notes: place.notes || null
+          })
+        });
+
+        if (response.ok) {
+          console.log("Place marked as visited");
+        } else {
+          console.warn("Failed to mark place in API, continuing with local update");
+        }
+      }
+
+      // Update collection in API/localStorage
       try {
         const response = await fetch(`${apiUrl}/api/collections/${collectionId}/places/${place.id || place.placeId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({ isVisited })
+          body: JSON.stringify({ 
+            isVisited: !isCurrentlyVisited,
+            visitedDate: !isCurrentlyVisited ? new Date().toISOString() : null
+          })
         });
 
         if (!response.ok) throw new Error('API failed');
@@ -170,7 +210,11 @@ export default function CollectionDetails() {
           if (collection.id === collectionId) {
             const updatedPlaces = collection.places.map(p => {
               if (p.id === place.id || p.placeId === place.placeId) {
-                return { ...p, isVisited, visitedDate: isVisited ? new Date().toISOString() : null };
+                return { 
+                  ...p, 
+                  isVisited: !isCurrentlyVisited, 
+                  visitedDate: !isCurrentlyVisited ? new Date().toISOString() : null 
+                };
               }
               return p;
             });
@@ -187,22 +231,22 @@ export default function CollectionDetails() {
       }
 
       // Update local state
-      setPlaces(places.map(p => {
+      const updatedPlaces = places.map(p => {
         if (p.id === place.id || p.placeId === place.placeId) {
-          return { ...p, isVisited, visitedDate: isVisited ? new Date().toISOString() : null };
+          return { 
+            ...p, 
+            isVisited: !isCurrentlyVisited, 
+            visitedDate: !isCurrentlyVisited ? new Date().toISOString() : null 
+          };
         }
         return p;
-      }));
+      });
+      
+      setPlaces(updatedPlaces);
 
       // Update collection stats
       if (collection) {
-        const newVisitedCount = places.filter(p => {
-          if (p.id === place.id || p.placeId === place.placeId) {
-            return isVisited;
-          }
-          return p.isVisited;
-        }).length;
-        
+        const newVisitedCount = updatedPlaces.filter(p => p.isVisited).length;
         setCollection({ ...collection, visitedCount: newVisitedCount });
       }
       

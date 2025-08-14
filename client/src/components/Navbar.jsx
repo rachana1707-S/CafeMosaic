@@ -18,6 +18,7 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [collectionsDropdownOpen, setCollectionsDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -31,7 +32,7 @@ export default function Navbar() {
 
   // Helper function to check if any route in the library group is active
   const isLibraryActive = () => {
-    const libraryRoutes = ['/my-favorites', '/my-collections', '/my-reviews', '/my-visits'];
+    const libraryRoutes = ['/my-favorites', '/my-collections', '/my-reviews', '/my-food-journey'];
     return libraryRoutes.some(route => location.pathname.startsWith(route));
   };
 
@@ -119,10 +120,7 @@ export default function Navbar() {
         <button
           className="navbar-toggler"
           type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
-          aria-controls="navbarNav"
-          aria-expanded="false"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label="Toggle navigation"
           style={{ backgroundColor: "#f0f0f0", border: "1px solid #ddd" }}
         >
@@ -130,7 +128,7 @@ export default function Navbar() {
         </button>
 
         <div
-          className="collapse navbar-collapse"
+          className={`collapse navbar-collapse ${mobileMenuOpen ? 'show' : ''}`}
           id="navbarNav"
           style={{
             backgroundColor: "#f0f0f0", // Light off-white
@@ -324,21 +322,6 @@ export default function Navbar() {
                           </div>
                         </Link>
                         
-                        <Link 
-                          to="/my-visits" 
-                          className="dropdown-item d-flex align-items-start px-3 py-2 text-decoration-none"
-                          onClick={() => setCollectionsDropdownOpen(false)}
-                          style={{ color: '#333' }}
-                          onMouseEnter={(e) => e.target.style.backgroundColor = '#f8f9fa'}
-                          onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-                        >
-                          <MapPin size={16} className="me-3 mt-1" style={{ color: '#27ae60', flexShrink: 0 }} />
-                          <div className="text-start">
-                            <div className="fw-semibold text-dark">My Food Journey</div>
-                            <small className="text-muted">Places you've visited</small>
-                          </div>
-                        </Link>
-
                         <hr className="dropdown-divider my-1" />
                         
                         <Link 
@@ -363,6 +346,7 @@ export default function Navbar() {
                     to="/my-favorites"
                     className="nav-link px-3 py-2 d-flex align-items-center justify-content-center text-dark"
                     style={getNavLinkStyle('/my-favorites')}
+                    onClick={() => setMobileMenuOpen(false)}
                     onMouseEnter={(e) => {
                       if (!isActiveRoute('/my-favorites')) {
                         e.target.style.borderBottomColor = "#FFD700";
@@ -384,6 +368,7 @@ export default function Navbar() {
                     to="/my-collections"
                     className="nav-link px-3 py-2 d-flex align-items-center justify-content-center text-dark"
                     style={getNavLinkStyle('/my-collections')}
+                    onClick={() => setMobileMenuOpen(false)}
                     onMouseEnter={(e) => {
                       if (!isActiveRoute('/my-collections')) {
                         e.target.style.borderBottomColor = "#FFD700";
@@ -405,6 +390,7 @@ export default function Navbar() {
                     to="/my-reviews"
                     className="nav-link px-3 py-2 text-dark"
                     style={getNavLinkStyle('/my-reviews')}
+                    onClick={() => setMobileMenuOpen(false)}
                     onMouseEnter={(e) => {
                       if (!isActiveRoute('/my-reviews')) {
                         e.target.style.borderBottomColor = "#FFD700";
@@ -421,28 +407,11 @@ export default function Navbar() {
                 </li>
 
                 <li className="nav-item d-lg-none">
-                  <Link
-                    to="/my-visits"
-                    className="nav-link px-3 py-2 text-dark"
-                    style={getNavLinkStyle('/my-visits')}
-                    onMouseEnter={(e) => {
-                      if (!isActiveRoute('/my-visits')) {
-                        e.target.style.borderBottomColor = "#FFD700";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isActiveRoute('/my-visits')) {
-                        e.target.style.borderBottomColor = "transparent";
-                      }
-                    }}
-                  >
-                    My Food Journey
-                  </Link>
-                </li>
-
-                <li className="nav-item d-lg-none">
                   <button
-                    onClick={handleLogout}
+                    onClick={() => {
+                      handleLogout();
+                      setMobileMenuOpen(false);
+                    }}
                     className="nav-link px-3 py-2 btn btn-link"
                     style={{
                       ...underlineHover,
