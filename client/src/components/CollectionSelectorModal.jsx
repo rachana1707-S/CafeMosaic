@@ -305,6 +305,8 @@ const CollectionSelectorModal = ({
     }
   };
 
+  
+
   const toggleCollectionSelection = (collectionId) => {
     setSelectedCollections(prev => {
       if (prev.includes(collectionId)) {
@@ -321,6 +323,14 @@ const CollectionSelectorModal = ({
   );
 
   if (!show) return null;
+
+  console.log('🔍 Production Debug:', {
+  'Environment Mode': import.meta.env.MODE,
+  'API URL Configured': import.meta.env.VITE_API_URL,
+  'Current Origin': window.location.origin,
+  'Selected Collections': selectedCollections,
+  'Place Data': selectedPlace?.name
+});
 
   return (
     <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
@@ -576,5 +586,7 @@ const CollectionSelectorModal = ({
     </div>
   );
 };
+
+
 
 export default CollectionSelectorModal;
